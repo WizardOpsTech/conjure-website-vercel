@@ -1,0 +1,271 @@
+---
+title: Using Remote Repositories
+description: Learn how to configure Conjure to fetch templates and bundles from a remote repository over HTTPS.
+---
+
+So far in the getting started guides, you have been working with templates and bundles stored on your local filesystem. Conjure also supports fetching templates and bundles from a remote repository served over HTTPS. This allows teams to host a shared repository of templates that everyone can use without cloning or copying files locally.
+
+This tutorial walks through configuring Conjure to use the [conjure-get-started](https://github.com/wizardopstechTech/conjure-get-started) repository as a remote source, then listing and generating templates from it.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Conjure installed and working
+- An internet connection
+- Command-line access on your machine
+
+<Note>
+This tutorial builds on concepts from the previous getting started guides. If you have not completed them yet, start with the [getting started](/docs/getting-started) tutorial.
+</Note>
+
+## How Remote Repositories Work
+
+A remote repository is a web server (or any HTTPS-accessible location) that hosts an `index.json` file alongside the template and bundle files. When Conjure is configured to use a remote source, it:
+
+1. Fetches `index.json` from the remote URL to discover available templates and bundles
+2. Downloads the requested template or bundle files on demand
+3. Verifies downloaded files against SHA256 checksums listed in the index
+4. Caches downloaded files locally so subsequent runs do not require network access
+
+<Important>
+Remote repositories must be served over HTTPS or HTTP. Conjure enforces TLS 1.2 as the minimum version for HTTPS connections.
+</Important>
+
+## Configure a Remote Source
+
+Update your `.conjure.yaml` to point at the conjure-get-started repository hosted on GitHub. The raw content URL serves the `index.json` and all template files directly.
+
+<OSTabs />
+
+<OSContent os="windows">
+
+Open your `.conjure.yaml` file and update it:
+
+```yaml
+templates_source: remote
+bundles_source: remote
+templates_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+bundles_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+Open `~/.conjure.yaml` and update it:
+
+```yaml
+templates_source: remote
+bundles_source: remote
+templates_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+bundles_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+Open `~/.conjure.yaml` and update it:
+
+```yaml
+templates_source: remote
+bundles_source: remote
+templates_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+bundles_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+```
+
+</OSContent>
+
+<Note>
+When `templates_source` is set to `remote`, the `templates_local_dir` field is not required. Conjure will fetch everything from the remote URL.
+</Note>
+
+## Browse Available Templates
+
+List the templates available in the remote repository:
+
+<OSContent os="windows">
+
+```powershell
+conjure list templates
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure list templates
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure list templates
+```
+
+</OSContent>
+
+Conjure fetches `index.json` from the remote URL and displays all available templates. The same is true for bundles.
+
+## Generate a Template from the Remote Repository
+
+Generate a Kubernetes Deployment manifest using the `k8s-deployment` template. Conjure will download the template files from the remote repository automatically:
+
+<OSContent os="windows">
+
+```powershell
+conjure template k8s-deployment -o deployment.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure template k8s-deployment -o deployment.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure template k8s-deployment -o deployment.yaml
+```
+
+</OSContent>
+
+You will see that the source is reported as `remote` in the output:
+
+```
+Using template: k8s-deployment v1.0.0 (source: remote)
+```
+
+Conjure will prompt you interactively for each variable. You can also provide variables directly using the `--var` arguments or -`f` as discussed in the earlier getting started tutorials.
+
+
+## Generate a Bundle from the Remote Repository
+
+Bundles also work with remote sources. Generate a complete Kubernetes web application stack:
+
+<OSContent os="windows">
+
+```powershell
+conjure bundle k8s-web-app -o ./k8s-output
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure bundle k8s-web-app -o ./k8s-output
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure bundle k8s-web-app -o ./k8s-output
+```
+
+</OSContent>
+
+## Caching
+
+After the first download, Conjure caches template and bundle files locally. Subsequent runs use the cached files and verify them against the SHA256 checksums in the index. This means you only need network access the first time you use a template or when the remote repository is updated.
+
+The default cache directory is `.conjure` in the current working directory. You can change it in your configuration:
+
+```yaml
+cache_dir: /path/to/cache
+```
+
+<Tip>
+Listing operations (`conjure list templates`, `conjure list bundles`) always fetch a fresh `index.json` from the remote to show the current state of the repository. Template and bundle generation operations use the cached index when available.
+</Tip>
+
+## Using Both Local and Remote Sources
+
+You can configure Conjure to use both local and remote sources simultaneously. This is useful when you have your own templates locally but also want access to a shared remote repository:
+
+<OSContent os="windows">
+
+```yaml
+templates_source: both
+bundles_source: both
+templates_local_dir: C:\conjure-workspace
+bundles_local_dir: C:\conjure-workspace
+templates_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+bundles_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+templates_priority: local-first
+bundles_priority: local-first
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+Replace `<username>` with your macOS username:
+
+```yaml
+templates_source: both
+bundles_source: both
+templates_local_dir: /Users/<username>/conjure-workspace
+bundles_local_dir: /Users/<username>/conjure-workspace
+templates_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+bundles_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+templates_priority: local-first
+bundles_priority: local-first
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+Replace `<username>` with your Linux username:
+
+```yaml
+templates_source: both
+bundles_source: both
+templates_local_dir: /home/<username>/conjure-workspace
+bundles_local_dir: /home/<username>/conjure-workspace
+templates_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+bundles_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+templates_priority: local-first
+bundles_priority: local-first
+```
+
+</OSContent>
+
+The `templates_priority` and `bundles_priority` fields control which source is checked first when a template or bundle exists in both locations:
+
+- `local-first` (default): Checks the local directory first, falls back to remote
+- `remote-first`: Checks the remote repository first, falls back to local
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Remote Repositories Reference",
+      description: "Complete reference for hosting and configuring remote repositories.",
+      href: "/docs/repositories/remote"
+    },
+    {
+      title: "Creating Templates",
+      description: "Build your own templates with variables, conditionals, and loops.",
+      href: "/docs/creating-templates"
+    },
+    {
+      title: "Configuration Reference",
+      description: "Complete reference for all Conjure configuration options.",
+      href: "/docs/configuration"
+    }
+  ]}
+/>

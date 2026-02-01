@@ -1,0 +1,307 @@
+.homePage {
+  padding: 32px 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--home-bg-gradient);
+  transition: background 0.5s ease;
+
+  & .decorativeOrbs {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  & .orb {
+    position: absolute;
+    border-radius: 9999px;
+    mix-blend-mode: screen;
+    filter: blur(64px);
+    opacity: 0.4;
+    animation: blob 7s infinite;
+    transition: opacity 0.5s ease, filter 0.5s ease, background 0.5s ease;
+  }
+
+  & .orb1 {
+    top: 0;
+    right: 0;
+    width: 24rem;
+    height: 24rem;
+    background: var(--brand-color);
+  }
+
+  & .orb2 {
+    top: 0;
+    left: 0;
+    width: 24rem;
+    height: 24rem;
+    background: var(--brand-teal);
+    opacity: 0.3;
+    animation-delay: 2s;
+  }
+
+  & .orb3 {
+    bottom: 0;
+    left: 50%;
+    width: 24rem;
+    height: 24rem;
+    background: var(--brand-gold);
+    opacity: 0.2;
+    animation-delay: 4s;
+  }
+
+  & .stars {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  & .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transition: opacity 0.5s ease, background 0.5s ease;
+  }
+
+  & .star1 {
+    top: 5rem;
+    right: 25%;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--brand-gold);
+  }
+
+  & .star2 {
+    top: 10rem;
+    right: 33%;
+    width: 0.25rem;
+    height: 0.25rem;
+    background: var(--brand-teal);
+    animation-delay: 0.5s;
+  }
+
+  & .star3 {
+    top: 15rem;
+    right: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: white;
+    animation-delay: 1s;
+  }
+
+  & .star4 {
+    top: 8rem;
+    left: 25%;
+    width: 0.25rem;
+    height: 0.25rem;
+    background: var(--brand-gold);
+    animation-delay: 1.5s;
+  }
+
+  & .star5 {
+    bottom: 10rem;
+    left: 33%;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--brand-teal);
+    animation-delay: 2s;
+  }
+
+  & .content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  & .logoContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 24px;
+    filter: var(--logo-shadow);
+    animation: logoFloat 3s ease-in-out infinite;
+    position: relative;
+  }
+
+  & .logo {
+    width: 100%;
+    height: auto;
+    max-width: clamp(250px, 50vw, 400px);
+    transition: opacity 0.3s ease;
+  }
+
+  & .logoDark {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  & .logoLight {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  & .title {
+    text-align: center;
+    color: var(--home-title-color);
+    margin-bottom: 20px;
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 700;
+    line-height: 1;
+    background: var(--home-title-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding: 0 20px;
+  }
+
+  & .tagline {
+    text-align: center;
+    color: var(--home-tagline-color);
+    margin-bottom: 20px;
+    font-family: var(--font-body);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 700px;
+    padding: 0 20px;
+  }
+
+  & .quote {
+    text-align: center;
+    color: var(--home-quote-color);
+    margin-bottom: 40px;
+    font-family: var(--font-body);
+    font-size: clamp(0.95rem, 1.8vw, 1.125rem);
+    font-weight: 400;
+    line-height: 1.5;
+    font-style: italic;
+    max-width: 700px;
+    padding: 0 20px;
+    opacity: 0.85;
+  }
+
+  & .buttonsList {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  & .wizardopsLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 32px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    background: rgba(90, 63, 192, 0.15);
+    border: 1px solid rgba(90, 63, 192, 0.3);
+    color: var(--gray-5);
+    font-family: var(--font-body);
+    font-size: clamp(0.85rem, 1.5vw, 1rem);
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+
+    &:hover {
+      background: rgba(90, 63, 192, 0.25);
+      border-color: rgba(90, 63, 192, 0.5);
+      color: var(--gray-7);
+      transform: translateY(-2px);
+    }
+  }
+
+  & .hatIcon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    animation: hatBob 2.5s ease-in-out infinite;
+  }
+
+  & .hatIconDark {
+    display: block;
+  }
+
+  & .hatIconLight {
+    display: none;
+  }
+}
+
+/* Light mode - swap logos */
+:global(html[data-theme="light"]) .homePage {
+  & .logoDark {
+    opacity: 0 !important;
+  }
+
+  & .logoLight {
+    opacity: 1 !important;
+  }
+
+  & .hatIconDark {
+    display: none;
+  }
+
+  & .hatIconLight {
+    display: block;
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes hatBob {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(3deg);
+  }
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}

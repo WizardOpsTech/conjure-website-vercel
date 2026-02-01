@@ -1,0 +1,189 @@
+---
+title: Install Conjure from Binary
+description: |-
+  Download and install a prebuilt Conjure binary for your platform.
+---
+
+Download the appropriate binary for your platform from the [downloads page](/download), then follow the instructions below.
+
+## Windows
+
+### Windows x86_64
+
+1. Download `conjure_VERSION_Windows_x86_64.zip` from the [downloads page](/download).
+
+2. Extract the archive:
+
+```powershell
+Expand-Archive -Path conjure_VERSION_Windows_x86_64.zip -DestinationPath C:\conjure
+```
+
+3. Add the directory to your PATH:
+
+```powershell
+# Add to current session
+$env:PATH += ";C:\conjure"
+
+# Add permanently (requires restart of terminal)
+[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";C:\conjure", "User")
+```
+
+4. Verify the installation:
+
+```powershell
+conjure --version
+```
+
+## Linux
+
+### Linux x86_64
+
+1. Download `conjure_VERSION_Linux_x86_64.tar.gz` from the [downloads page](/download).
+
+2. Extract and install:
+
+<OSTabs />
+
+<OSContent os="linux">
+
+```bash
+tar -xzf conjure_VERSION_Linux_x86_64.tar.gz
+sudo mv conjure /usr/local/bin/
+sudo chmod +x /usr/local/bin/conjure
+```
+
+</OSContent>
+
+3. Verify the installation:
+
+```bash
+conjure --version
+```
+
+### Linux arm64
+
+1. Download `conjure_VERSION_Linux_arm64.tar.gz` from the [downloads page](/download).
+
+2. Extract and install:
+
+<OSTabs />
+
+<OSContent os="linux">
+
+```bash
+tar -xzf conjure_VERSION_Linux_arm64.tar.gz
+sudo mv conjure /usr/local/bin/
+sudo chmod +x /usr/local/bin/conjure
+```
+
+</OSContent>
+
+3. Verify the installation:
+
+```bash
+conjure --version
+```
+
+### Alternative: Install to User Directory
+
+If you do not have root access, install to a local directory instead:
+
+```bash
+mkdir -p ~/.local/bin
+tar -xzf conjure_VERSION_Linux_x86_64.tar.gz -C ~/.local/bin/
+chmod +x ~/.local/bin/conjure
+```
+
+Ensure `~/.local/bin` is on your PATH by adding this to your `~/.bashrc` or `~/.zshrc`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+## macOS
+
+### Darwin arm64
+
+For Apple Silicon Macs (M1, M2, M3, M4).
+
+1. Download `conjure_VERSION_Darwin_arm64.tar.gz` from the [downloads page](/download).
+
+2. Extract and install:
+
+<OSTabs />
+
+<OSContent os="macos">
+
+```bash
+tar -xzf conjure_VERSION_Darwin_arm64.tar.gz
+sudo mv conjure /usr/local/bin/
+sudo chmod +x /usr/local/bin/conjure
+```
+
+</OSContent>
+
+3. If macOS blocks the binary, remove the quarantine attribute:
+
+```bash
+xattr -d com.apple.quarantine /usr/local/bin/conjure
+```
+
+4. Verify the installation:
+
+```bash
+conjure --version
+```
+
+### Darwin x86_64
+
+For Intel-based Macs.
+
+1. Download `conjure_VERSION_Darwin_x86_64.tar.gz` from the [downloads page](/download).
+
+2. Extract and install:
+
+<OSTabs />
+
+<OSContent os="macos">
+
+```bash
+tar -xzf conjure_VERSION_Darwin_x86_64.tar.gz
+sudo mv conjure /usr/local/bin/
+sudo chmod +x /usr/local/bin/conjure
+```
+
+</OSContent>
+
+3. If macOS blocks the binary, remove the quarantine attribute:
+
+```bash
+xattr -d com.apple.quarantine /usr/local/bin/conjure
+```
+
+4. Verify the installation:
+
+```bash
+conjure --version
+```
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Getting Started",
+      description: "Set up Conjure and generate your first template.",
+      href: "/docs/getting-started"
+    },
+    {
+      title: "Configuration",
+      description: "Configure Conjure for your environment.",
+      href: "/docs/configuration"
+    },
+    {
+      title: "Build from Source",
+      description: "Build Conjure yourself from the source code.",
+      href: "/docs/install/build"
+    }
+  ]}
+/>

@@ -1,0 +1,425 @@
+---
+title: Creating Templates
+description: Learn how to create your own Conjure templates from scratch.
+---
+
+Creating templates allows you to codify your infrastructure and application configurations as reusable blueprints. This guide walks you through building templates step by step.
+
+## What You'll Create
+
+By the end of this guide, you'll have created a complete template that:
+- Generates a Kubernetes Deployment manifest
+- Accepts customizable variables
+- Includes proper metadata and documentation
+
+## Template Anatomy
+
+Every template is organized in a versioned directory structure containing:
+
+1. **Template file** (`template.tmpl`) - Contains the template with placeholders
+2. **Metadata file** (`conjure.json`) - Defines version, type, variables, and documentation
+
+Templates follow the directory pattern: `templates/{name}/{version}/`
+
+## Step 1: Create Template Files
+
+<OSTabs />
+
+<OSContent os="windows">
+
+Navigate to your templates directory:
+
+```powershell
+Set-Location "C:\conjure-workspace\templates"
+```
+
+Create the versioned template directory:
+
+```powershell
+New-Item -Path "deployment\1.0.0" -ItemType Directory -Force
+```
+
+Create the template files:
+
+```powershell
+New-Item -Path "deployment\1.0.0\template.tmpl" -ItemType File
+New-Item -Path "deployment\1.0.0\conjure.json" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+Navigate to your templates directory:
+
+```bash
+cd ~/conjure-workspace/templates
+```
+
+Create the versioned template directory:
+
+```bash
+mkdir -p deployment/1.0.0
+```
+
+Create the template files:
+
+```bash
+touch deployment/1.0.0/template.tmpl
+touch deployment/1.0.0/conjure.json
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+Navigate to your templates directory:
+
+```bash
+cd ~/conjure-workspace/templates
+```
+
+Create the versioned template directory:
+
+```bash
+mkdir -p deployment/1.0.0
+```
+
+Create the template files:
+
+```bash
+touch deployment/1.0.0/template.tmpl
+touch deployment/1.0.0/conjure.json
+```
+
+</OSContent>
+
+## Step 2: Write the Template
+
+Open `deployment/1.0.0/template.tmpl` and add the template content:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.app_name}}-deployment
+  namespace: {{.namespace}}
+  labels:
+    app: {{.app_name}}
+spec:
+  replicas: {{.replicas}}
+  selector:
+    matchLabels:
+      app: {{.app_name}}
+  template:
+    metadata:
+      labels:
+        app: {{.app_name}}
+    spec:
+      containers:
+      - name: {{.app_name}}
+        image: {{.image}}
+        ports:
+        - containerPort: {{.port}}
+        resources:
+          requests:
+            cpu: {{.cpu_request}}
+            memory: {{.memory_request}}
+          limits:
+            cpu: {{.cpu_limit}}
+            memory: {{.memory_limit}}
+```
+
+## Step 3: Define Metadata
+
+Open `deployment/1.0.0/conjure.json` and add the variable definitions:
+
+```json
+{
+  "schema_version": "v1",
+  "version": "1.0.0",
+  "template_name": "deployment",
+  "template_type": "yaml",
+  "template_description": "Kubernetes Deployment manifest with configurable resources",
+  "variables": [
+    {
+      "name": "app_name",
+      "description": "Application name",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "namespace",
+      "description": "Kubernetes namespace",
+      "type": "string",
+      "default": "default"
+    },
+    {
+      "name": "image",
+      "description": "Container image (e.g., nginx:latest)",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "replicas",
+      "description": "Number of pod replicas",
+      "type": "int",
+      "default": "3"
+    },
+    {
+      "name": "port",
+      "description": "Container port",
+      "type": "int",
+      "default": "8080"
+    },
+    {
+      "name": "cpu_request",
+      "description": "CPU request (e.g., 100m)",
+      "type": "string",
+      "default": "100m"
+    },
+    {
+      "name": "cpu_limit",
+      "description": "CPU limit (e.g., 500m)",
+      "type": "string",
+      "default": "500m"
+    },
+    {
+      "name": "memory_request",
+      "description": "Memory request (e.g., 128Mi)",
+      "type": "string",
+      "default": "128Mi"
+    },
+    {
+      "name": "memory_limit",
+      "description": "Memory limit (e.g., 512Mi)",
+      "type": "string",
+      "default": "512Mi"
+    }
+  ]
+}
+```
+
+## Metadata Structure Requirements
+
+All template metadata files (`conjure.json`) must include these required fields:
+
+```json
+{
+  "schema_version": "v1",
+  "template_name": "deployment",
+  "template_type": "yaml",
+  "template_description": "Template description",
+  "variables": []
+}
+```
+
+- **schema_version** - Currently only "v1" is supported
+- **template_name** - Template identifier used in commands
+- **template_type** - Classification type (e.g., "yaml", "json", "kubernetes", "terraform")
+- **template_description** - Describes the purpose of the template
+- **variables** - Array of variable definitions (can be empty)
+
+The **version** field is optional. Version is determined by the directory name (e.g., `1.0.0/`).
+
+### Variable Requirements
+
+All variables must include three required fields:
+
+**name** - The variable identifier used in templates
+**type** - Must be one of: "string", "int", or "bool"
+**description** - Helps users understand the variable's purpose
+
+### Required Default Variables
+
+Variables with `"default": ""` are required. The user must provide a value via CLI flags, values files, or interactive prompts. Variables with non-empty defaults are optional for users to overide.
+
+```json
+{
+  "name": "app_name",
+  "description": "Application name",
+  "type": "string",
+  "default": ""
+}
+```
+
+## Step 4: Test Your Template
+
+<OSContent os="windows">
+
+```powershell
+# Navigate to workspace
+Set-Location "C:\conjure-workspace"
+
+# Test with interactive mode
+conjure template deployment -o test-deployment.yaml
+
+# Or test with variables
+conjure template deployment -o test-deployment.yaml `
+  --var app_name=test-app `
+  --var image=nginx:latest
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Navigate to workspace
+cd ~/conjure-workspace
+
+# Test with interactive mode
+conjure template deployment -o test-deployment.yaml
+
+# Or test with variables
+conjure template deployment -o test-deployment.yaml \
+  --var app_name=test-app \
+  --var image=nginx:latest
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Navigate to workspace
+cd ~/conjure-workspace
+
+# Test with interactive mode
+conjure template deployment -o test-deployment.yaml
+
+# Or test with variables
+conjure template deployment -o test-deployment.yaml \
+  --var app_name=test-app \
+  --var image=nginx:latest
+```
+
+</OSContent>
+
+Verify the output:
+
+<OSContent os="windows">
+
+```powershell
+Get-Content test-deployment.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+cat test-deployment.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+cat test-deployment.yaml
+```
+
+</OSContent>
+
+## Testing Your Template
+
+### Create a Test Values File
+
+<OSContent os="windows">
+
+```powershell
+New-Item -Path "test-values.yaml" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+touch test-values.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+touch test-values.yaml
+```
+
+</OSContent>
+
+Add test values:
+
+```yaml
+app_name: test-app
+namespace: testing
+image: nginx:latest
+replicas: 2
+port: 80
+cpu_request: 100m
+cpu_limit: 200m
+memory_request: 64Mi
+memory_limit: 128Mi
+```
+
+### Generate and Validate
+
+<OSContent os="windows">
+
+```powershell
+# Generate
+conjure template deployment -o test-deployment.yaml -f test-values.yaml
+
+# Validate with kubectl (if available)
+kubectl apply --dry-run=client -f test-deployment.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Generate
+conjure template deployment -o test-deployment.yaml -f test-values.yaml
+
+# Validate with kubectl (if available)
+kubectl apply --dry-run=client -f test-deployment.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Generate
+conjure template deployment -o test-deployment.yaml -f test-values.yaml
+
+# Validate with kubectl (if available)
+kubectl apply --dry-run=client -f test-deployment.yaml
+```
+
+</OSContent>
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Template Syntax",
+      description: "Deep dive into Go template syntax.",
+      href: "/docs/creating-templates/template-syntax"
+    },
+    {
+      title: "Creating Bundles",
+      description: "Combine templates into bundles.",
+      href: "/docs/creating-bundles"
+    },
+    {
+      title: "Examples",
+      description: "See more template examples.",
+      href: "/docs/examples"
+    }
+  ]}
+/>

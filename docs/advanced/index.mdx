@@ -1,0 +1,438 @@
+---
+title: Advanced Topics
+description: Advanced patterns and techniques for power users.
+---
+
+This section covers advanced Conjure usage patterns, optimizations, and integration strategies for experienced users.
+
+## Complex Template Patterns
+
+The [conjure-get-started repository](https://github.com/wizardopstechTech/conjure-get-started/tree/master/templates/) contains the below advanced templates as examples.
+
+### Multi-Level Conditionals
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.app_name}}
+  namespace: {{.namespace}}
+spec:
+  # Multi-level conditional: Environment and scale tier determine replicas
+  {{- if eq .environment "production"}}
+  {{- if eq .scale_tier "large"}}
+  replicas: 10
+  {{- else if eq .scale_tier "medium"}}
+  replicas: 5
+  {{- else}}
+  replicas: 3
+  {{- end}}
+  {{- else if eq .environment "staging"}}
+  replicas: 2
+  {{- else}}
+  replicas: 1
+  {{- end}}
+
+  selector:
+    matchLabels:
+      app: {{.app_name}}
+  template:
+    metadata:
+      labels:
+        app: {{.app_name}}
+        environment: {{.environment}}
+    spec:
+      containers:
+      - name: {{.app_name}}
+        image: {{.app_name}}:latest
+
+        # Multi-level conditional: Environment-based resource configuration
+        resources:
+          {{- if eq .environment "production"}}
+          {{- if eq .scale_tier "large"}}
+          # High-scale production (large tier)
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+          {{- else if eq .scale_tier "medium"}}
+          # Medium-scale production
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          {{- else}}
+          # Small-scale production
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          {{- end}}
+          {{- else if eq .environment "staging"}}
+          # Staging environment
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          {{- else}}
+          # Development environment
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          {{- end}}
+
+        # Another multi-level conditional: Liveness probe configuration
+        {{- if eq .environment "production"}}
+        {{- if eq .scale_tier "large"}}
+        # Aggressive health checks for large production
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        {{- else}}
+        # Standard health checks for production
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        {{- end}}
+        {{- else if ne .environment "development"}}
+        # Basic health checks for staging
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 120
+          periodSeconds: 30
+        {{- end}}
+```
+
+### Dynamic Resource Names
+
+```yaml
+{{- $appName := .app_name -}}
+{{- $namespace := .namespace -}}
+{{- $environment := .environment -}}
+{{- $team := .team -}}
+
+# Construct composite names using variables
+{{- $fullName := printf "%s-%s" $appName $namespace -}}
+{{- $resourcePrefix := printf "%s-%s" $team $environment -}}
+{{- $uniqueId := printf "%s-%s-%s" $team $appName $environment -}}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  # Use constructed variable for service name
+  name: {{$fullName}}-service
+  namespace: {{$namespace}}
+  labels:
+    app: {{$appName}}
+    environment: {{$environment}}
+    team: {{$team}}
+    # Use composite variables in labels
+    full-name: {{$fullName}}
+    resource-prefix: {{$resourcePrefix}}
+spec:
+  selector:
+    app: {{$appName}}
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: {{printf "%s-http" $appName}}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # Dynamic name using all variables
+  name: {{$uniqueId}}-config
+  namespace: {{$namespace}}
+  labels:
+    managed-by: {{$team}}
+data:
+  # Use variables in data values
+  app_identifier: {{$uniqueId}}
+  service_name: {{$fullName}}-service
+  namespace: {{$namespace}}
+
+  # Create dynamic keys and values
+  {{printf "%s_endpoint" $appName}}: "http://{{$fullName}}-service.{{$namespace}}.svc.cluster.local"
+  {{printf "%s_port" $appName}}: "80"
+
+---
+```
+
+### Conditional Blocks with Multiple Conditions
+
+```yaml
+{{- if and (eq .environment "production") (eq .region "us-east-1") (eq .scale_tier "large")}}
+# Production US-East-1 large-scale configuration
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values:
+          - {{.app_name}}
+      topologyKey: kubernetes.io/hostname
+{{- end}}
+```
+
+1. Simple AND
+if and (eq .env "prod") (eq .region "us-east-1")
+
+2. Simple OR
+if or (eq .env "prod") (eq .env "staging")
+
+3. NOT with ne (not equal)
+if ne .env "development"
+
+4. Complex nested
+if and (or (eq .env "prod") (eq .env "staging")) (eq .tier "large")
+
+5. Multiple ORs
+if or (eq .region "us-east-1") (eq .region "us-west-2") (eq .region "eu-west-1")
+
+6. Combining AND and OR
+if and (or (eq .env "prod") (eq .env "staging")) (ne .region "deprecated")
+
+#### Available operators:
+- eq: equal
+- ne: not equal
+- and: logical AND
+- or: logical OR
+- not: logical NOT (use 'ne' for not-equal comparisons)
+
+
+### String Manipulation
+
+```yaml
+# Printf formatting
+version: {{printf "v%s" .version}}
+
+# Combining multiple variables
+full_name: {{printf "%s-%s" .app_name .environment}}
+
+# Complex string construction
+image: {{printf "%s/%s:%s" .registry .app_name .tag}}
+
+# Service endpoint construction
+endpoint: {{printf "%s.%s.svc.cluster.local" .service_name .namespace}}
+```
+
+1. Simple prefix/suffix
+printf "v%s" .version → "v1.0.0"
+printf "%s-suffix" .name → "myapp-suffix"
+
+2. Combining variables
+printf "%s-%s" .app .env → "myapp-production"
+
+3. Complex constructions
+printf "%s/%s:%s" .registry .app .version → "gcr.io/myapp:1.0.0"
+
+4. Multiple variables
+printf "%s-%s-%s" .team .app .env → "platform-myapp-production"
+
+5. With literals and variables
+printf "http://%s.%s.svc" .name .namespace → "http://myapp.default.svc"
+
+## CI/CD Integration Patterns
+
+### GitLab CI
+
+```yaml
+variables:
+  BUNDLE_NAME: "web-app"
+  VALUES_DIR: "values"
+
+.deploy_template:
+  script:
+    - |
+      conjure bundle ${BUNDLE_NAME} \
+        -o ./output \
+        -f ${VALUES_DIR}/${CI_ENVIRONMENT_NAME}.yaml \
+        --var "image=${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}" \
+        --var "namespace=${CI_ENVIRONMENT_NAME}"
+    - kubectl apply -f ./output/ --namespace=${CI_ENVIRONMENT_NAME}
+
+deploy:dev:
+  extends: .deploy_template
+  environment:
+    name: development
+  only:
+    - develop
+
+deploy:staging:
+  extends: .deploy_template
+  environment:
+    name: staging
+  only:
+    - main
+
+deploy:production:
+  extends: .deploy_template
+  environment:
+    name: production
+  when: manual
+  only:
+    - tags
+```
+
+### GitHub Actions
+
+```yaml
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Conjure
+        run: |
+          # Install Conjure CLI
+          curl -L https://github.com/wizardopstechTech/conjure/releases/latest/download/conjure-linux-amd64 -o /usr/local/bin/conjure
+          chmod +x /usr/local/bin/conjure
+
+      - name: Generate manifests
+        run: |
+          conjure bundle web-app \
+            -o ./output \
+            -f ./values/${{ github.event.inputs.environment || 'development' }}.yaml \
+            --var "image=ghcr.io/${{ github.repository }}:${{ github.sha }}" \
+            --var "namespace=${{ github.event.inputs.environment || 'development' }}"
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f ./output/ \
+            --namespace=${{ github.event.inputs.environment || 'development' }}
+```
+
+### ArgoCD Integration
+
+Generate manifests and commit to Git repository:
+
+```yaml
+# .gitlab-ci.yml
+generate:manifests:
+  script:
+    - |
+      for env in dev staging production; do
+        conjure bundle web-app \
+          -o ./manifests/${env} \
+          -f ./values/${env}.yaml \
+          --var "image=${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}" \
+          -i=false
+      done
+    - git add manifests/
+    - git commit -m "Update manifests for ${CI_COMMIT_TAG}"
+    - git push origin main
+```
+
+ArgoCD watches the `manifests/` directory and auto-deploys changes.
+
+## Multi-Environment Management
+
+### Strategy 1: Single Repository, Multiple Values Files
+
+Bundles and Templates are stored locally or accessed from a remote repository and values are stored alongside them and passed with the `-f` flag as needed.
+```
+project/
+├── .conjure.yaml
+├── bundles/
+|   └── web-app/
+├── values/
+│   ├── base.yaml
+│   ├── dev.yaml
+│   ├── staging.yaml
+│   └── production.yaml
+└── scripts/
+    └── deploy.sh
+```
+
+### Strategy 2: Environment Branches
+
+```
+main              # production values
+├── staging       # staging values
+└── develop       # dev values
+```
+
+Each branch has environment-specific values committed.
+
+### Strategy 3: Separate Repositories
+
+```
+shared-templates/     # Template repository
+├── templates/
+└── bundles/
+
+app-configs/         # Configuration repository
+├── dev/
+│   └── values.yaml
+├── staging/
+│   └── values.yaml
+└── production/
+    └── values.yaml
+```
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Examples",
+      description: "See these patterns in action with real examples.",
+      href: "/docs/examples"
+    },
+    {
+      title: "Troubleshooting",
+      description: "Debug common issues and errors.",
+      href: "/docs/troubleshooting"
+    },
+    {
+      title: "CLI Reference",
+      description: "Complete command reference.",
+      href: "/docs/cli-reference"
+    }
+  ]}
+/>

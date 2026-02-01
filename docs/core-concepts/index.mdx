@@ -1,0 +1,132 @@
+---
+title: Core Concepts
+description: Understanding the fundamental concepts of Conjure - templates, bundles, and variables.
+---
+
+Before diving into creating your own templates and bundles, it's important to understand the core concepts that make Conjure powerful and flexible.
+
+## Overview
+
+Conjure is a template-driven configuration generator that helps you create consistent, reusable infrastructure and application configurations. At its core, Conjure works with three main concepts:
+
+1. **Templates** - Individual file generators
+2. **Bundles** - Collections of related templates
+3. **Variables** - Dynamic values that customize your outputs
+
+## Templates vs Bundles
+
+### Templates
+
+A **template** is a single file generator that produces one output file. Think of it as a blueprint for a specific configuration file.
+
+**Use templates when you need to:**
+- Generate a single configuration file
+- Create standalone artifacts
+- Have fine-grained control over individual files
+- Reuse the same pattern across different projects
+
+**Example template:**
+```
+templates/
+└── k8s-deployment/
+    └── 1.0.0/
+        ├── conjure.json       # Metadata file
+        └── template.tmpl      # Template file
+```
+
+Generates: One Kubernetes Deployment manifest
+
+### Bundles
+
+A **bundle** is a collection of related templates that work together as a cohesive unit. Bundles generate multiple files at once with shared context.
+
+**Use bundles when you need to:**
+- Generate multiple related configuration files
+- Maintain consistency across related files
+- Deploy complete solutions (app + database + networking)
+- Share variables across multiple templates
+
+**Example bundle:**
+```
+bundles/
+└── web-app/
+    └── 1.0.0/
+        ├── conjure.json              # Bundle metadata
+        ├── deployment.yaml.tmpl      # Deployment template
+        ├── service.yaml.tmpl         # Service template
+        └── ingress.yaml.tmpl         # Ingress template
+```
+
+Generates: Complete Kubernetes application stack (3 files)
+
+## Comparison Table
+
+| Feature | Template | Bundle |
+|---------|----------|--------|
+| Output | Single file | Multiple files |
+| Variables | Template-specific | Shared + template-specific |
+| Use case | Individual configs | Complete solutions |
+| Complexity | Simple | Moderate to complex |
+| Reusability | High | Medium |
+| Command | `conjure template` | `conjure bundle` |
+
+## When to Use Each
+
+### Use a Template
+
+```bash
+# Generate a single Kubernetes deployment
+conjure template k8s-deployment -o deployment.yaml
+
+# Generate a Terraform variable file
+conjure template terraform-variables -o variables.tf
+
+# Generate a Docker Compose file
+conjure template docker-compose -o docker-compose.yaml
+```
+
+**Scenarios:**
+- You need just one configuration file
+- You're customizing a single component
+- You want maximum flexibility
+- You're building a library of reusable pieces
+
+### Use a Bundle
+
+```bash
+# Generate complete web app infrastructure
+conjure bundle web-app -o ./output
+
+# Generate microservices stack
+conjure bundle k8s-microservice -o ./k8s
+```
+
+**Scenarios:**
+- You're deploying a complete application
+- Multiple files need to share the same configuration
+- You want to ensure consistency across related files
+- You're standardizing deployments across teams
+
+## Next Steps
+
+Now that you understand the core concepts:
+
+<CardLinks
+  cards={[
+    {
+      title: "Variables & Types",
+      description: "Learn about variable types, requirements, and precedence.",
+      href: "/docs/core-concepts/variables-and-types"
+    },
+    {
+      title: "Repository Structure",
+      description: "How to organize your templates and bundles.",
+      href: "/docs/core-concepts/repository-structure"
+    },
+    {
+      title: "Creating Templates",
+      description: "Learn how to create your own templates from scratch.",
+      href: "/docs/creating-templates"
+    }
+  ]}
+/>

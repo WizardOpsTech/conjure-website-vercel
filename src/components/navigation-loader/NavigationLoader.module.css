@@ -1,0 +1,29 @@
+.loaderContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  overflow: hidden;
+  background: transparent;
+}
+
+.loaderBar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-teal), var(--brand-color), var(--brand-gold));
+  animation: loading 1.5s ease-in-out infinite;
+  box-shadow: 0 0 10px var(--brand-teal);
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

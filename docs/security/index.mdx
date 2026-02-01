@@ -1,0 +1,62 @@
+---
+title: Security
+description: Security features in Conjure for remote repository integrity, file validation, and TLS enforcement.
+---
+
+Conjure includes multiple security layers to ensure the integrity of templates and bundles fetched from remote repositories.
+
+## SHA256 Verification
+
+Every file downloaded from a remote repository is verified using SHA256 hashing.
+
+**Example error:**
+```
+Error: SHA256 mismatch for templates/deployment/1.0.0/conjure.json
+Expected: 9617f2bb2f1bf6449aebb3af48cf1652bc9b12b2d8f61ae78a8e0b72cdd35f16
+Got:      1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+```
+
+This ensures files have not been tampered with or corrupted during transfer.
+
+## File Size Validation
+
+Files are validated before and after download:
+
+**Pre-download validation:**
+- Check expected size from index.json
+- Reject files larger than 100 MB
+- Prevents downloading extremely large files
+
+**Post-download validation:**
+- Verify actual downloaded size matches expected size
+- Ensures complete transfer
+- Prevents truncated files from being cached
+
+**Maximum file size:** 100 MB (104,857,600 bytes)
+
+## TLS Security
+
+HTTPS connections use strong TLS configuration:
+
+**TLS Version:**
+- Minimum: TLS 1.2
+
+**Certificate Verification:**
+- Enabled by default
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Remote Repositories",
+      description: "Learn about remote repository structure and hosting.",
+      href: "/docs/repositories/remote"
+    },
+    {
+      title: "Configuration",
+      description: "Complete configuration reference.",
+      href: "/docs/configuration"
+    }
+  ]}
+/>

@@ -1,0 +1,226 @@
+---
+title: Interactive Mode
+description: Learn how to use Conjure's interactive mode to generate templates with guided prompts.
+---
+
+This tutorial will walk you through the default interactive mode for Conjure.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Command-line access on your machine
+- Basic familiarity with your terminal
+
+<Note>
+This tutorial can be completed in under 10 minutes.
+</Note>
+
+<Note>
+This tutorial picks up where [getting started](/docs/getting-started) finished and assumes the template hello-world exists in a local repository.
+</Note>
+
+## Why Use Interactive Mode?
+
+While experienced users can pass all variables via command line, Conjure provides an interactive mode that guides you through the template generation process. This is especially useful when you're unfamiliar with a template or want to explore what variables it accepts.
+
+Interactive mode is helpful when:
+
+- You're using a template for the first time
+- You want to discover what variables a template accepts
+- You prefer a guided experience over memorizing command flags
+- You're sharing templates with team members who may be less familiar with the CLI
+
+## Running Templates Interactively
+
+To run a template in interactive mode, simply omit the variables from the command:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+conjure template hello-world -o greeting.txt
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure template hello-world -o greeting.txt
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure template hello-world -o greeting.txt
+```
+
+</OSContent>
+
+Conjure will detect that no variables were provided and automatically prompt you for each required value:
+
+```
+? Enter value for 'name': DevOps Engineer
+? Enter value for 'team': Platform Engineering
+✓ Generated greeting.txt from hello-world template
+```
+
+## How Interactive Prompts Work
+
+When a template requires variables, Conjure will:
+
+1. **Analyze the template** to discover all variable placeholders
+2. **Prompt for each variable** one at a time
+3. **Display helpful context** if the template includes descriptions
+4. **Validate input** based on template requirements
+5. **Generate the artifact** with your provided values
+
+## Creating Interactive-Friendly Templates
+
+To make your templates work well in interactive mode, use descriptive variable names and include metadata:
+
+- Learn more about [template metadata requirements](/docs/creating-templates#Metadata-structure-requirements)
+
+<OSContent os="windows">
+
+Create a template metadata file `templates\my-template\1.0.0\conjure.json`:
+
+```json
+{
+  "schema_version": "v1",
+  "template_name": "my-template.yaml",
+  "template_description": "Creates a configuration file for my application",
+  "template_type": "kubernetes",
+  "variables": [
+    {
+      "name": "app_name",
+      "description": "The name of your application",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "environment",
+      "description": "Deployment environment (dev, staging, prod)",
+      "type": "string",
+      "default": "dev"
+    },
+    {
+      "name": "replicas",
+      "description": "Number of application replicas",
+      "type": "int",
+      "default": "3"
+    }
+  ]
+}
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+Create a template metadata file `templates/my-template/1.0.0/conjure.json`:
+
+```json
+{
+  "schema_version": "v1",
+  "template_name": "my-template.yaml",
+  "template_description": "Creates a configuration file for my application",
+  "template_type": "kubernetes",
+  "variables": [
+    {
+      "name": "app_name",
+      "description": "The name of your application",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "environment",
+      "description": "Deployment environment (dev, staging, prod)",
+      "type": "string",
+      "default": "dev"
+    },
+    {
+      "name": "replicas",
+      "description": "Number of application replicas",
+      "type": "int",
+      "default": "3"
+    }
+  ]
+}
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+Create a template metadata file `templates/my-template/1.0.0/conjure.json`:
+
+```json
+{
+  "schema_version": "v1",
+  "template_name": "my-template.yaml",
+  "template_description": "Creates a configuration file for my application",
+  "template_type": "kubernetes",
+  "variables": [
+    {
+      "name": "app_name",
+      "description": "The name of your application",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "environment",
+      "description": "Deployment environment (dev, staging, prod)",
+      "type": "string",
+      "default": "dev"
+    },
+    {
+      "name": "replicas",
+      "description": "Number of application replicas",
+      "type": "int",
+      "default": "3"
+    }
+  ]
+}
+```
+
+</OSContent>
+
+With this metadata, Conjure will display:
+
+```
+? Enter value for 'app_name' (The name of your application): my-api
+? Enter value for 'environment' (Deployment environment - dev, staging, prod) [dev]: prod
+? Enter value for 'replicas' (Number of application replicas) [3]: 5
+```
+
+## All or Nothing Approach
+
+Using interactive mode is an "all or nothing" approach. `--var` nad `-f` cannot be combined with it using the `-i` flag.
+
+<Important>
+Interactive mode is not available when running Conjure in non-interactive environments. Always use `--var` or values files for automation.
+</Important>
+
+## Next Steps
+
+Now that you understand interactive mode, learn how to use values files for more complex scenarios:
+
+<CardLinks
+  cards={[
+    {
+      title: "Values Files & Precedence",
+      description: "Use YAML files to provide template variables and understand variable precedence.",
+      href: "/docs/getting-started/values-and-precedence"
+    },
+    {
+      title: "Template Reference",
+      description: "Deep dive into creating sophisticated templates with conditionals and loops.",
+      href: "/docs/conjuring-artifacts/template"
+    }
+  ]}
+/>

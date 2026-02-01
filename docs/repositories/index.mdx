@@ -1,0 +1,223 @@
+---
+title: Repositories
+description: Understanding local and remote sources for templates and bundles in Conjure.
+---
+
+Conjure can source templates and bundles from local directories, remote HTTP(S) repositories, or both. This flexibility enables teams to maintain private templates locally while leveraging shared repositories remotely.
+
+## Repository Types
+
+Conjure supports two repository types that can be used independently or combined:
+
+### Local Repositories
+
+Local repositories are directories on your filesystem containing templates and bundles organized in a versioned structure.
+
+**Characteristics:**
+- Direct filesystem access
+- No network required
+- Fastest access time
+- Full control over content
+- Ideal for development and private templates
+
+**Use cases:**
+- Development environments
+- Organization-specific templates
+- Templates with sensitive configuration
+- Offline work
+
+### Remote Repositories
+
+Remote repositories are HTTP(S) servers hosting templates and bundles with an index-based discovery system.
+
+**Characteristics:**
+- Network-based access
+- Caching for performance
+- SHA256 integrity verification
+- Central distribution point
+- Version management
+
+**Use cases:**
+- Team collaboration
+- Shared template libraries
+- Public template repositories
+- CI/CD pipelines
+
+## Source Configuration
+
+Configure sources using the `templates_source` and `bundles_source` fields in your configuration file.
+
+### Local Only
+
+Use only local directories:
+
+```yaml
+templates_source: local
+templates_local_dir: .conjure/templates
+bundles_source: local
+bundles_local_dir: .conjure/bundles
+```
+
+### Remote Only
+
+Use only remote repositories:
+
+```yaml
+templates_source: remote
+templates_remote_url: https://templates.example.com
+bundles_source: remote
+bundles_remote_url: https://bundles.example.com
+cache_dir: .conjure
+```
+
+### Both Sources
+
+Use both local and remote repositories:
+
+```yaml
+templates_source: both
+templates_local_dir: .conjure/templates
+templates_remote_url: https://templates.example.com
+templates_priority: local-first
+
+bundles_source: both
+bundles_local_dir: .conjure/bundles
+bundles_remote_url: https://bundles.example.com
+bundles_priority: local-first
+
+cache_dir: .conjure
+```
+
+## Priority and Resolution
+
+When using both local and remote sources, Conjure needs to know which source to check first. This is controlled by the priority setting.
+
+### Priority Options
+
+**local-first** (default):
+- Checks local directory first
+- Falls back to remote if not found
+- Fastest for resources that exist locally
+- Recommended for development
+
+**remote-first**:
+- Checks remote repository first
+- Falls back to local if not found
+- Ensures latest versions from central repository
+- Recommended for production environments
+
+### How Priority Works
+
+When retrieving a template or bundle:
+
+1. **First source** (based on priority) is checked for the resource
+2. If found, resource is returned immediately
+3. If not found, **second source** is checked
+4. If found in second source, resource is returned
+5. If not found in either source, error is returned
+
+**Example with local-first priority:**
+
+```yaml
+templates_priority: local-first
+```
+
+When you run:
+```bash
+conjure template deployment -o deployment.yaml
+```
+
+Conjure will:
+1. Check `.conjure/templates/deployment/` for the template
+2. If found locally, use it immediately
+3. If not found locally, check remote repository
+4. If found remotely, download, cache, and use it
+5. If not found in either, return error
+
+### Version Resolution
+
+When a specific version is requested, Conjure follows the same priority order:
+
+```bash
+conjure template deployment --version 2.0.0 -o deployment.yaml
+```
+
+With `local-first`:
+1. Look for version 2.0.0 locally
+2. If found, use it
+3. If not found, look remotely
+4. Return error if not in either source
+
+### Latest Version Selection
+
+When no version is specified, Conjure determines the latest version by:
+
+1. **Gathering all versions** from all configured sources
+2. **Deduplicating** version numbers across sources
+3. **Semantic version comparison** to find the highest version
+4. **Resolving** that version using the priority order
+
+**Example:**
+- Local repository has: `deployment` versions `1.0.0`, `1.1.0`
+- Remote repository has: `deployment` versions `1.1.0`, `2.0.0`
+
+Result:
+- Combined versions: `1.0.0`, `1.1.0`, `2.0.0`
+- Latest version: `2.0.0`
+- Resolution follows priority to retrieve `2.0.0`
+
+If `local-first` and `2.0.0` only exists remotely, Conjure will:
+1. Check local for `2.0.0` (not found)
+2. Check remote for `2.0.0` (found)
+3. Download and use remote version
+
+## Listing Templates and Bundles
+
+When listing available templates or bundles, Conjure aggregates results from all configured sources.
+
+```bash
+conjure list templates
+```
+
+**Behavior:**
+- Lists templates from local repository
+- Lists templates from remote repository
+- Deduplicates by name
+- Shows all available versions across all sources
+- Indicates which source each version came from
+
+**Example output:**
+```
+Templates:
+  deployment
+    Versions: 1.0.0 (local), 1.1.0 (local), 2.0.0 (remote)
+    Type: kubernetes
+    Description: Kubernetes Deployment manifest
+
+  service
+    Versions: 1.0.0 (local, remote)
+    Type: kubernetes
+    Description: Kubernetes Service manifest
+```
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Local Repositories",
+      description: "Deep dive into local repository structure and setup.",
+      href: "/docs/repositories/local"
+    },
+    {
+      title: "Remote Repositories",
+      description: "Understanding remote repositories, index.json, and caching.",
+      href: "/docs/repositories/remote"
+    },
+    {
+      title: "Configuration Reference",
+      description: "Complete configuration options and examples.",
+      href: "/docs/configuration"
+    }
+  ]}
+/>

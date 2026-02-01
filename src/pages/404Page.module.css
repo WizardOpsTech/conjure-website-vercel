@@ -1,0 +1,49 @@
+.notFoundPage {
+  padding: 32px 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  min-height: calc(100vh - var(--header-height) - var(--footer-height));
+  background: var(--docs-page-bg);
+  transition: background 0.5s ease;
+
+  & .header {
+    padding: 32px 0;
+    text-align: center;
+
+    h1 {
+      padding-bottom: 24px;
+    }
+  }
+
+  & .imageSection {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  & .image {
+    width: 100%;
+    height: auto;
+    max-width: none;
+  }
+
+}
+
+.imageDark {
+  display: block;
+}
+
+.imageLight {
+  display: none;
+}
+
+:global([data-theme="light"]) .imageDark {
+  display: none;
+}
+
+:global([data-theme="light"]) .imageLight {
+  display: block;
+}

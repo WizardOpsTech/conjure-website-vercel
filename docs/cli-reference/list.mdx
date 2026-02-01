@@ -1,0 +1,329 @@
+---
+title: conjure list
+description: List available templates and bundles.
+---
+
+The `conjure list` command displays available templates and bundles in your configured directories.
+
+## Synopsis
+
+```bash
+conjure list [subcommand] [flags]
+```
+
+## Subcommands
+
+### list (no subcommand)
+
+List both templates and bundles:
+
+```bash
+conjure list
+```
+
+**Output:**
+```
+=== Templates ===
+Available Templates:
+
+  deployment
+    Description: Kubernetes Deployment manifest
+    Type: kubernetes
+    Latest: 1.0.0
+
+  docker-compose
+    Description: Docker Compose configuration
+    Type: docker
+    Latest: 1.0.0
+
+Total: 2 templates
+
+=== Bundles ===
+Available Bundles:
+
+  web-app
+    Description: Complete web application deployment
+    Type: kubernetes
+    Latest: 1.2.0
+
+Total: 1 bundle
+```
+
+### list templates
+
+List only templates:
+
+```bash
+conjure list templates
+```
+
+**Output:**
+```
+Available Templates:
+
+  deployment
+    Description: Kubernetes Deployment manifest
+    Type: kubernetes
+    Latest: 1.0.0
+
+  docker-compose
+    Description: Docker Compose configuration
+    Type: docker
+    Latest: 1.0.0
+
+  vpc
+    Description: Terraform VPC configuration
+    Type: terraform
+    Latest: 3.2.1
+
+Total: 3 templates
+```
+
+### list bundles
+
+List only bundles:
+
+```bash
+conjure list bundles
+```
+
+**Output:**
+```
+Available Bundles:
+
+  web-app
+    Description: Complete web application deployment
+    Type: kubernetes
+    Latest: 1.2.0
+
+  aws-infrastructure
+    Description: AWS VPC and networking setup
+    Type: terraform
+    Latest: 2.1.0
+
+Total: 2 bundles
+```
+
+## Flags
+
+### --versions
+
+Show all available versions for each template or bundle.
+
+```bash
+conjure list templates --versions
+```
+
+**Output:**
+```
+Available Templates:
+
+  deployment
+    Description: Kubernetes Deployment manifest
+    Type: kubernetes
+    Latest: 2.0.0
+    All Versions: 1.0.0, 1.5.1, 2.0.0
+
+  service
+    Description: Kubernetes Service manifest
+    Type: kubernetes
+    Latest: 2.1.0
+    All Versions: 1.0.0, 2.0.0, 2.1.0
+
+Total: 2 templates
+```
+
+```bash
+conjure list bundles --versions
+```
+
+**Output:**
+```
+Available Bundles:
+
+  web-app
+    Description: Complete web application deployment
+    Type: kubernetes
+    Latest: 1.2.0
+    All Versions: 1.0.0, 1.1.0, 1.2.0
+
+Total: 1 bundle
+```
+
+### -t, --type
+
+Filter results by type.
+
+**For templates** - Filter by template type:
+
+```bash
+conjure list templates -t yaml
+```
+
+**Output:**
+```
+Available Templates (type: yaml):
+
+  deployment
+    Description: Kubernetes Deployment manifest
+    Type: yaml
+    Latest: 1.0.0
+
+  service
+    Description: Kubernetes Service manifest
+    Type: yaml
+    Latest: 2.1.0
+
+Total: 2 templates
+```
+
+```bash
+conjure list templates -t tf
+```
+
+**Output:**
+```
+Available Templates (type: tf):
+
+  subnet
+    Description: AWS Subnet configuration
+    Type: tf
+    Latest: 1.0.0
+
+  vpc
+    Description: AWS VPC configuration
+    Type: tf
+    Latest: 3.2.1
+
+Total: 2 templates
+```
+
+**Common template types:**
+- `yaml`
+- `tf`
+- `json`
+- `txt`
+
+<Note>
+Template types are freeform strings defined in template metadata (`template_type` field). There is no validation restricting types to this list.
+</Note>
+
+**For bundles** - Filter by bundle type:
+
+```bash
+conjure list bundles -t kubernetes
+```
+
+**Output:**
+```
+Available Bundles (type: kubernetes):
+
+  microservices
+    Description: Microservices platform with API gateway
+    Type: kubernetes
+    Latest: 2.0.1
+
+  web-app
+    Description: Complete web application deployment
+    Type: kubernetes
+    Latest: 1.2.0
+
+Total: 2 bundles
+```
+
+```bash
+conjure list bundles -t terraform
+```
+
+**Output:**
+```
+Available Bundles (type: terraform):
+
+  aws-infrastructure
+    Description: AWS VPC and networking
+    Type: terraform
+    Latest: 2.1.0
+
+Total: 1 bundle
+```
+
+**Common bundle types:**
+- `kubernetes`
+- `terraform`
+- `docker`
+
+<Note>
+Bundle types are freeform strings defined in bundle metadata (`bundle_type` field). There is no validation restricting types to this list.
+</Note>
+
+## Examples
+
+### List Everything
+
+```bash
+conjure list
+```
+
+Shows all templates and bundles.
+
+### Show All Versions
+
+```bash
+conjure list templates --versions
+```
+
+Shows all available versions for each template.
+
+### Find Kubernetes Templates
+
+```bash
+conjure list templates -t yaml
+```
+
+Lists all YAML templates (typically Kubernetes manifests).
+
+### Find Terraform Templates
+
+```bash
+conjure list templates -t tf
+```
+
+Lists all Terraform templates.
+
+### Find Kubernetes Bundles
+
+```bash
+conjure list bundles -t kubernetes
+```
+
+Lists all Kubernetes bundles.
+
+### Find Terraform Bundles
+
+```bash
+conjure list bundles -t terraform
+```
+
+Lists all Terraform bundles.
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "conjure template",
+      description: "Generate files from templates you discovered.",
+      href: "/docs/cli-reference/template"
+    },
+    {
+      title: "conjure bundle",
+      description: "Use bundles you found.",
+      href: "/docs/cli-reference/bundle"
+    },
+    {
+      title: "Configuration",
+      description: "Configure where Conjure looks for templates and bundles.",
+      href: "/docs/configuration"
+    }
+  ]}
+/>

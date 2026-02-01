@@ -1,0 +1,273 @@
+{
+  "items": [
+    {
+      "type": "link",
+      "path": "/about",
+      "title": "About Conjure"
+    },
+    {
+      "type": "folder",
+      "path": "/getting-started",
+      "title": "Getting Started",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Getting Started"
+        },
+        {
+          "type": "link",
+          "path": "/interactive",
+          "title": "Using Interactive Mode"
+        },
+        {
+          "type": "link",
+          "path": "/variables-and-precedence",
+          "title": "Values Files and Vars"
+        },
+        {
+          "type": "link",
+          "path": "/bundles",
+          "title": "Using Bundles"
+        },
+        {
+          "type": "link",
+          "path": "/remote-repos",
+          "title": "Using Remote Repositories"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/install",
+      "title": "Install",
+      "children": [
+        {
+          "type": "link",
+          "path": "/binary",
+          "title": "Binaries and Packages"
+        },
+        {
+          "type": "link",
+          "path": "/build",
+          "title": "Build from Source"
+        },
+        {
+          "type": "link",
+          "path": "/package",
+          "title": "Packaging Conjure"
+        },
+
+        {
+          "type": "folder",
+          "path": "/release-notes",
+          "title": "Release Notes",
+          "children": [
+            {
+              "type": "link",
+              "path": "/",
+              "title": "Overview"
+            },
+            {
+              "type": "link",
+              "path": "/1-0-0",
+              "title": "1.0.0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/core-concepts",
+      "title": "Core Concepts",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Overview"
+        },
+        {
+          "type": "link",
+          "path": "/variables-and-types",
+          "title": "Variables & Types"
+        },
+        {
+          "type": "link",
+          "path": "/repository-structure",
+          "title": "Repository Structure"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/repositories",
+      "title": "Repositories",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Overview"
+        },
+        {
+          "type": "link",
+          "path": "/local",
+          "title": "Local Repositories"
+        },
+        {
+          "type": "link",
+          "path": "/remote",
+          "title": "Remote Repositories"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/security",
+      "title": "Security",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Security"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/configuration",
+      "title": "Configuration",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Configuration Reference"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/creating-templates",
+      "title": "Creating Templates",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Creating Templates"
+        },
+        {
+          "type": "link",
+          "path": "/template-syntax",
+          "title": "Template Syntax"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/creating-bundles",
+      "title": "Creating Bundles",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Creating Bundles"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/values-files",
+      "title": "Values Files",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Values Files Guide"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/cli-reference",
+      "title": "CLI Reference",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Overview"
+        },
+        {
+          "type": "link",
+          "path": "/template",
+          "title": "conjure template"
+        },
+        {
+          "type": "link",
+          "path": "/bundle",
+          "title": "conjure bundle"
+        },
+        {
+          "type": "link",
+          "path": "/list",
+          "title": "conjure list"
+        },
+        {
+          "type": "link",
+          "path": "/repo-index",
+          "title": "conjure repo index"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/advanced",
+      "title": "Advanced Topics",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Advanced Patterns"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/examples",
+      "title": "Examples",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Examples"
+        },
+        {
+          "type": "link",
+          "path": "/cicd-github-actions",
+          "title": "CI/CD with GitHub Actions"
+        },
+        {
+          "type": "link",
+          "path": "/kubernetes-web-app",
+          "title": "Kubernetes Web Application"
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/troubleshooting",
+      "title": "Troubleshooting",
+      "children": [
+        {
+          "type": "link",
+          "path": "/",
+          "title": "Troubleshooting Guide"
+        }
+      ]
+    },
+    {
+      "type": "link",
+      "path": "/sponsor",
+      "title": "Sponsor and Support"
+    }
+  ]
+}

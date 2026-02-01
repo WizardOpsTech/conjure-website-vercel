@@ -1,0 +1,306 @@
+---
+title: Troubleshooting
+description: Common issues, errors, and how to resolve them.
+---
+
+This guide helps you debug and resolve common issues when using Conjure.
+
+### Verify Configuration
+
+Check which config file is being used:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+conjure list
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure list
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure list
+```
+
+</OSContent>
+
+Output shows:
+```
+Using config file: /path/to/.conjure.yaml
+```
+
+### Validate Config File YAML Syntax
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+# Install yamllint
+pip install yamllint
+
+# Check values file
+yamllint .\values\production.yaml
+
+# Check config file
+yamllint .\.conjure.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Install yamllint
+pip install yamllint
+
+# Check values file
+yamllint ./values/production.yaml
+
+# Check config file
+yamllint ~/.conjure.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Install yamllint
+pip install yamllint
+
+# Check values file
+yamllint ./values/production.yaml
+
+# Check config file
+yamllint ~/.conjure.yaml
+```
+
+</OSContent>
+
+## Configuration Errors
+
+### Error: Config file not found
+
+**Error message:**
+```
+Error: config file not found
+```
+
+**Cause:** No `.conjure.yaml` in home directory or specified via `--config`.
+
+**Solution:**  Create `~/.conjure.yaml` or pass a configuration file with the `--config` flag.
+
+<OSContent os="linux">
+
+```bash
+# Create bundles directory
+mkdir -p ~/conjure-workspace/bundles
+```
+
+</OSContent>
+
+## Metadata Validation Errors
+
+### Error: schema_version field is required
+
+**Error message:**
+```
+Error: schema_version field is required (see documentation for migration from metadata_version)
+```
+
+**Cause:** Template or bundle metadata is missing the `schema_version` field.
+
+**Solution:**
+
+Add `schema_version` field to your metadata file:
+
+**For templates:**
+```json
+{
+  "schema_version": "v1",
+  "template_name": "deployment.yaml",
+  "template_description": "Template description",
+  "variables": []
+}
+```
+
+**For bundles:**
+```json
+{
+  "schema_version": "v1",
+  "bundle_type": "kubernetes",
+  "bundle_name": "web-app",
+  "bundle_description": "Bundle description",
+  "shared_variables": [],
+  "template_variables": {}
+}
+```
+
+### Error: unsupported schema_version
+
+**Error message:**
+```
+Error: unsupported schema_version: v2 (only 'v1' is supported)
+```
+
+**Cause:** The `schema_version` field contains an unsupported version.
+
+**Solution:**
+
+Change `schema_version` to "v1":
+
+```json
+{
+  "schema_version": "v1"
+}
+```
+
+<Note>
+Default values are always strings in JSON, but Conjure validates they can be converted to the declared type.
+</Note>
+
+### Error: Required flag "output" not set
+
+**Error message:**
+```
+Error: required flag(s) "output" not set
+```
+
+**Cause:** Missing `-o` flag.
+
+**Solution:**
+
+Always specify output directory:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+conjure bundle web-app -o .\output
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure bundle web-app -o ./output
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure bundle web-app -o ./output
+```
+
+</OSContent>
+
+## Values File Errors
+
+### Error: Invalid YAML syntax
+
+**Error message:**
+```
+Error: failed to parse values file: yaml: line 10: mapping values are not allowed in this context
+```
+
+**Cause:** YAML syntax error in values file.
+
+**Common issues:**
+
+```yaml
+# Bad - missing space after colon
+app_name:my-app
+
+# Bad - wrong indentation
+template_overrides:
+deployment.yaml.tmpl:
+  replicas: 10
+
+# Bad - tabs instead of spaces
+template_overrides:
+→deployment.yaml.tmpl:  # Tab character
+  →replicas: 10
+
+# Good
+app_name: my-app
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10
+```
+
+**Solution:**
+
+Use YAML validator:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+yamllint .\values\production.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+yamllint ./values/production.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+yamllint ./values/production.yaml
+```
+
+</OSContent>
+
+### Check Version
+
+Compare the version in use against the release notes.
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+conjure --version
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure --version
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure --version
+```
+
+</OSContent>

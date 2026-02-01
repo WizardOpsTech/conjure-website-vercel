@@ -1,0 +1,375 @@
+---
+title: Repository Structure
+description: How to organize your templates and bundles in a Conjure repository.
+---
+
+Understanding the expected repository structure is crucial for using Conjure effectively. This guide shows you how to organize your templates and bundles using versioned directories.
+
+## Basic Structure
+
+A Conjure repository has this structure:
+
+```
+my-conjure-repo/
+├── templates/
+│   ├── deployment/
+│   │   ├── 1.0.0/
+│   │   │   ├── conjure.json
+│   │   │   └── template.tmpl
+│   │   └── 2.0.0/
+│   │       ├── conjure.json
+│   │       └── template.tmpl
+│   └── service/
+│       └── 1.0.0/
+│           ├── conjure.json
+│           └── template.tmpl
+├── bundles/
+│   └── web-app/
+│       ├── 1.0.0/
+│       │   ├── conjure.json
+│       │   ├── deployment.yaml.tmpl
+│       │   └── service.yaml.tmpl
+│       └── 2.0.0/
+│           ├── conjure.json
+│           ├── deployment.yaml.tmpl
+│           ├── service.yaml.tmpl
+│           └── ingress.yaml.tmpl
+└── .conjure.yaml (optional)
+```
+
+## Templates Directory
+
+The `templates/` directory contains individual templates organized by name and version.
+
+### Directory Structure
+
+Templates follow this hierarchical structure:
+
+```
+templates/
+└── <template-name>/
+    └── <version>/
+        ├── conjure.json
+        └── template.tmpl
+```
+
+### Version Format
+
+Versions must use strict semantic versioning without the "v" prefix:
+
+**Correct:**
+- `1.0.0`
+- `2.1.3`
+- `10.5.2`
+
+**Incorrect:**
+- `v1.0.0` (no "v" prefix)
+- `1.0` (must be three parts)
+- `latest` (must be a specific version)
+
+### Examples
+
+**Kubernetes Deployment:**
+```
+templates/
+└── deployment/
+    ├── 1.0.0/
+    │   ├── conjure.json
+    │   └── template.tmpl
+    └── 2.0.0/
+        ├── conjure.json
+        └── template.tmpl
+```
+
+**Terraform File:**
+```
+templates/
+└── vpc/
+    └── 1.0.0/
+        ├── conjure.json
+        └── template.tmpl
+```
+
+### Template Metadata File
+
+Each template version directory must contain a `conjure.json` file:
+
+```json
+{
+  "schema_version": "v1",
+  "version": "1.0.0",
+  "template_name": "deployment",
+  "template_type": "yaml",
+  "template_description": "Kubernetes Deployment manifest",
+  "variables": [
+    {
+      "name": "app_name",
+      "description": "Application name",
+      "type": "string",
+      "default": ""
+    }
+  ]
+}
+```
+
+<Important>
+The `version` field in `conjure.json` is optional. The version is determined by the directory name (e.g., `1.0.0/`), not by the metadata file. If included in metadata, it's for documentation purposes only.
+</Important>
+
+**Required fields (validated by Conjure):**
+- `schema_version` - Must be "v1"
+- `template_name` - Template identifier
+- `template_type` - Classification type (freeform string like "kubernetes", "terraform", "docker")
+- `template_description` - Human-readable description
+
+**Optional fields:**
+- `version` - Semantic version (determined by directory name, included for documentation only)
+- `variables` - Array of variable definitions (can be empty)
+
+## Bundles Directory
+
+The `bundles/` directory contains bundles organized by name and version.
+
+### Directory Structure
+
+Bundles follow this hierarchical structure:
+
+```
+bundles/
+└── <bundle-name>/
+    └── <version>/
+        ├── conjure.json
+        ├── template1.tmpl
+        ├── template2.tmpl
+        └── ...more templates
+```
+
+### Examples
+
+**Simple Bundle:**
+```
+bundles/
+└── web-app/
+    └── 1.0.0/
+        ├── conjure.json
+        ├── deployment.yaml.tmpl
+        └── service.yaml.tmpl
+```
+
+**Multi-Version Bundle:**
+```
+bundles/
+└── web-app/
+    ├── 1.0.0/
+    │   ├── conjure.json
+    │   ├── deployment.yaml.tmpl
+    │   └── service.yaml.tmpl
+    └── 2.0.0/
+        ├── conjure.json
+        ├── deployment.yaml.tmpl
+        ├── service.yaml.tmpl
+        └── ingress.yaml.tmpl
+```
+
+### Bundle Metadata File
+
+Each bundle version directory must contain a `conjure.json` file:
+
+```json
+{
+  "schema_version": "v1",
+  "version": "1.0.0",
+  "bundle_type": "kubernetes",
+  "bundle_name": "web-app",
+  "bundle_description": "Complete web application deployment",
+  "shared_variables": [
+    {
+      "name": "app_name",
+      "description": "Application name",
+      "type": "string",
+      "default": ""
+    }
+  ],
+  "template_variables": {
+    "deployment.yaml.tmpl": [
+      {
+        "name": "replicas",
+        "description": "Number of pod replicas",
+        "type": "int",
+        "default": "3"
+      }
+    ]
+  }
+}
+```
+
+<Important>
+The `version` field in `conjure.json` is optional. The version is determined by the directory name (e.g., `1.0.0/`), not by the metadata file.
+</Important>
+
+**Required fields (validated by Conjure):**
+- `schema_version` - Must be "v1"
+- `bundle_name` - Bundle identifier
+- `bundle_type` - Classification type (like "kubernetes", "terraform", "docker")
+- `bundle_description` - Human-readable description
+
+**Optional fields:**
+- `version` - Semantic version (determined by directory name, included for documentation only)
+- `shared_variables` - Variables available to all templates (can be empty)
+- `template_variables` - Template-specific variables (can be empty)
+
+### Template Files in Bundles
+
+Template files in bundles:
+- End with `.tmpl`, `.tpl`, or `.template` extension
+- Don't need separate metadata files
+- Variables are defined in the bundle's `conjure.json`
+
+**Example bundle structure:**
+```
+bundles/web-app/1.0.0/
+├── conjure.json              ← Defines all variables
+├── deployment.yaml.tmpl      ← No separate .json file
+├── service.yaml.tmpl         ← No separate .json file
+└── ingress.yaml.tmpl         ← No separate .json file
+```
+
+## Version Management
+
+### Multiple Versions
+
+You can maintain multiple versions of the same template or bundle:
+
+```
+templates/
+└── deployment/
+    ├── 1.0.0/
+    │   ├── conjure.json
+    │   └── template.tmpl
+    ├── 1.1.0/
+    │   ├── conjure.json
+    │   └── template.tmpl
+    └── 2.0.0/
+        ├── conjure.json
+        └── template.tmpl
+```
+
+Users can specify which version to use:
+
+```bash
+# Use latest version
+conjure template deployment -o deployment.yaml
+
+# Use specific version
+conjure template deployment --version 1.0.0 -o deployment.yaml
+```
+
+### Version Selection
+
+When no version is specified:
+- Conjure automatically uses the latest semantic version
+- Latest is determined by semantic version comparison (not alphabetical)
+- Example: Given versions `1.0.0`, `1.1.0`, `2.0.0`, latest is `2.0.0`
+
+## Complete Example
+
+Here's a complete example repository with multiple templates and bundles:
+
+```
+my-infrastructure-templates/
+├── .conjure.yaml
+├── templates/
+│   ├── deployment/
+│   │   ├── 1.0.0/
+│   │   │   ├── conjure.json
+│   │   │   └── template.tmpl
+│   │   └── 2.0.0/
+│   │       ├── conjure.json
+│   │       └── template.tmpl
+│   ├── service/
+│   │   └── 1.0.0/
+│   │       ├── conjure.json
+│   │       └── template.tmpl
+│   ├── ingress/
+│   │   └── 1.0.0/
+│   │       ├── conjure.json
+│   │       └── template.tmpl
+│   └── vpc/
+│       ├── 1.0.0/
+│       │   ├── conjure.json
+│       │   └── template.tmpl
+│       └── 2.0.0/
+│           ├── conjure.json
+│           └── template.tmpl
+├── bundles/
+│   ├── web-app/
+│   │   ├── 1.0.0/
+│   │   │   ├── conjure.json
+│   │   │   ├── deployment.yaml.tmpl
+│   │   │   └── service.yaml.tmpl
+│   │   └── 2.0.0/
+│   │       ├── conjure.json
+│   │       ├── deployment.yaml.tmpl
+│   │       ├── service.yaml.tmpl
+│   │       └── ingress.yaml.tmpl
+│   └── database/
+│       └── 1.0.0/
+│           ├── conjure.json
+│           ├── statefulset.yaml.tmpl
+│           └── service.yaml.tmpl
+└── examples/
+    ├── web-app-dev.yaml
+    └── web-app-prod.yaml
+```
+
+## Organizing Examples
+
+It's a good practice to include example values files:
+
+```
+examples/
+├── web-app-dev.yaml
+├── web-app-prod.yaml
+└── deployment-simple.yaml
+```
+
+These help users understand how to use your templates and bundles.
+
+## Remote Repositories
+
+For remote repositories, you must generate an index file:
+
+```bash
+conjure repo index \
+  --templates ./templates \
+  --bundles ./bundles \
+  --out ./public
+```
+
+This creates `public/index.json` with metadata about all templates and bundles, including:
+- Available versions
+- File paths
+- SHA256 checksums
+- Version information
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Creating Templates",
+      description: "Learn how to create templates that fit this structure.",
+      href: "/docs/creating-templates"
+    },
+    {
+      title: "Creating Bundles",
+      description: "Build bundles following this organization.",
+      href: "/docs/creating-bundles"
+    },
+    {
+      title: "Configuration",
+      description: "Configure Conjure to find your templates and bundles.",
+      href: "/docs/configuration"
+    }
+  ]}
+/>

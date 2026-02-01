@@ -1,0 +1,628 @@
+---
+title: Values Files
+description: Master values files for organizing variables and template overrides.
+---
+
+Values files provide a powerful way to manage variables for templates and bundles. This guide covers everything you need to know about creating and using values files effectively.
+
+## What are Values Files?
+
+Values files are YAML files that contain variable definitions for templates and bundles. They allow you to:
+- Store complex configurations outside of command-line arguments
+- Maintain environment-specific settings
+- Version control your configurations
+- Share configurations across teams
+- Override template-specific variables in bundles
+
+## Basic Format
+
+### For Standalone Templates
+
+Simple key-value pairs:
+
+```yaml
+app_name: my-api
+namespace: production
+image: ghcr.io/myorg/my-api:1.0.0
+port: 8080
+replicas: 5
+enable_monitoring: true
+cpu_limit: 500m
+memory_limit: 512Mi
+```
+
+### For Bundles
+
+Shared variables plus template-specific overrides:
+
+```yaml
+# Shared variables (used by all templates)
+app_name: my-api
+namespace: production
+image: ghcr.io/myorg/my-api:1.0.0
+
+# Template-specific overrides
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10
+    cpu_limit: 2000m
+    memory_limit: 4Gi
+
+  service.yaml.tmpl:
+    service_type: LoadBalancer
+    service_port: 443
+
+  ingress.yaml.tmpl:
+    enable_tls: true
+    host: api.production.example.com
+```
+
+## Variable Types in YAML
+
+### String Values
+
+```yaml
+# Simple strings
+app_name: my-api
+namespace: production
+
+# Strings with special characters (use quotes)
+image: "ghcr.io/myorg/my-api:1.0.0"
+host: "api.example.com"
+
+# Multi-line strings
+description: |
+  This is a multi-line
+  description of the application
+```
+
+### Integer Values
+
+```yaml
+# Numbers without quotes
+port: 8080
+replicas: 5
+timeout: 30
+```
+
+### Boolean Values
+
+```yaml
+# Boolean values
+enable_monitoring: true
+enable_tls: false
+debug_mode: true
+```
+
+<Important>
+YAML boolean values can be: `true`, `false`, `yes`, `no`, `on`, `off`. For consistency with Conjure's boolean type, use `true` and `false`.
+</Important>
+
+## Template Overrides
+
+Template overrides allow you to set different values for specific templates in a bundle.
+
+### Basic Override Structure
+
+```yaml
+# Shared by all templates
+app_name: my-api
+
+# Specific to individual templates
+template_overrides:
+  template-name.tmpl:
+    variable_name: value
+```
+
+### Complete Example
+
+```yaml
+# Shared variables
+app_name: web-platform
+namespace: production
+image: web-platform:2.0.0
+
+# Template-specific overrides
+template_overrides:
+  # Override variables for deployment
+  deployment.yaml.tmpl:
+    replicas: 10
+    cpu_request: 1000m
+    cpu_limit: 2000m
+    memory_request: 2Gi
+    memory_limit: 4Gi
+    enable_health_checks: true
+
+  # Override variables for service
+  service.yaml.tmpl:
+    service_type: LoadBalancer
+    service_port: 443
+    enable_monitoring: true
+
+  # Override variables for ingress
+  ingress.yaml.tmpl:
+    enable_tls: true
+    host: web-platform.example.com
+    tls_secret_name: web-platform-tls
+```
+
+### When to Use Template Overrides
+
+**Use template overrides when:**
+- Variable is only relevant to one template
+- Different templates need different values for the same variable name
+- You want to keep shared variables clean and focused
+
+**Use shared variables when:**
+- Variable is used by multiple templates
+- Value should be consistent across all templates (app_name, namespace, etc.)
+
+## Variable Precedence
+
+When the same variable is defined in multiple places, Conjure uses this precedence order (highest to lowest):
+
+### 1. CLI Template-Specific Flags (Highest)
+
+```bash
+conjure bundle web-app -o ./output \
+  --var deployment.yaml.tmpl:replicas=15
+```
+
+Overrides everything else for that specific template.
+
+### 2. Values File Template Overrides
+
+```yaml
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10
+```
+
+### 3. CLI Shared Variables
+
+```bash
+conjure bundle web-app -o ./output \
+  --var replicas=5
+```
+
+### 4. Values File Shared Variables
+
+```yaml
+replicas: 3
+```
+
+### 5. Bundle/Template Defaults (Lowest)
+
+```json
+{
+  "default": "3"
+}
+```
+
+### Precedence Example
+
+Given these inputs:
+
+**Bundle metadata default:**
+```json
+{
+  "name": "replicas",
+  "default": "3"
+}
+```
+
+**Values file:**
+```yaml
+replicas: 5
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10
+```
+
+**CLI:**
+```bash
+--var replicas=7 --var deployment.yaml.tmpl:replicas=15
+```
+
+**Result for deployment.yaml.tmpl:** `replicas = 15` (CLI template override wins)
+
+**Without CLI template override:** `replicas = 10` (values file override wins)
+
+**Without any overrides:** `replicas = 7` (CLI shared variable wins)
+
+**With only values file:** `replicas = 10` (values file override wins)
+
+**With only shared in values file:** `replicas = 5` (values file shared variable wins)
+
+**With nothing set:** `replicas = 3` (default wins)
+
+## Environment-Specific Values Files
+
+Organize values files by environment to manage different configurations.
+
+### Directory Structure
+
+```
+conjure-workspace/
+├── values/
+│   ├── dev.yaml
+│   ├── staging.yaml
+│   └── production.yaml
+├── templates/
+└── bundles/
+```
+
+### Development (dev.yaml)
+
+```yaml
+# Development environment
+app_name: my-api
+namespace: development
+image: my-api:dev
+environment: dev
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 1
+    cpu_limit: 200m
+    memory_limit: 256Mi
+    enable_debug: true
+
+  service.yaml.tmpl:
+    service_type: ClusterIP
+    service_port: 8080
+
+  ingress.yaml.tmpl:
+    enable_tls: false
+    host: my-api.dev.local
+```
+
+### Staging (staging.yaml)
+
+```yaml
+# Staging environment
+app_name: my-api
+namespace: staging
+image: my-api:latest
+environment: staging
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 3
+    cpu_limit: 500m
+    memory_limit: 1Gi
+    enable_debug: false
+
+  service.yaml.tmpl:
+    service_type: ClusterIP
+    service_port: 8080
+
+  ingress.yaml.tmpl:
+    enable_tls: true
+    host: my-api.staging.example.com
+```
+
+### Production (production.yaml)
+
+```yaml
+# Production environment
+app_name: my-api
+namespace: production
+image: my-api:1.0.0
+environment: production
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10
+    cpu_limit: 2000m
+    memory_limit: 4Gi
+    enable_debug: false
+    enable_monitoring: true
+
+  service.yaml.tmpl:
+    service_type: LoadBalancer
+    service_port: 443
+
+  ingress.yaml.tmpl:
+    enable_tls: true
+    host: api.example.com
+    tls_secret_name: production-tls
+```
+
+### Using Environment Files
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+# Development
+conjure bundle web-app -o .\output -f .\values\dev.yaml
+
+# Staging
+conjure bundle web-app -o .\output -f .\values\staging.yaml
+
+# Production
+conjure bundle web-app -o .\output -f .\values\production.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Development
+conjure bundle web-app -o ./output -f ./values/dev.yaml
+
+# Staging
+conjure bundle web-app -o ./output -f ./values/staging.yaml
+
+# Production
+conjure bundle web-app -o ./output -f ./values/production.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Development
+conjure bundle web-app -o ./output -f ./values/dev.yaml
+
+# Staging
+conjure bundle web-app -o ./output -f ./values/staging.yaml
+
+# Production
+conjure bundle web-app -o ./output -f ./values/production.yaml
+```
+
+</OSContent>
+
+## Organization Strategies
+
+### Strategy 1: Single File Per Environment
+
+**Good for:**
+- Simple applications
+- Small teams
+- Few templates
+
+```
+values/
+├── dev.yaml      # All dev variables
+├── staging.yaml  # All staging variables
+└── prod.yaml     # All prod variables
+```
+
+### Strategy 2: Base + Environment Overrides
+
+**Good for:**
+- Complex applications
+- Many shared settings
+- Large teams
+
+```
+values/
+├── base.yaml           # Common defaults
+├── dev-overrides.yaml  # Dev-specific
+├── staging-overrides.yaml
+└── prod-overrides.yaml
+```
+
+**base.yaml:**
+```yaml
+app_name: my-api
+image_registry: ghcr.io/myorg
+
+template_overrides:
+  deployment.yaml.tmpl:
+    cpu_request: 100m
+    memory_request: 128Mi
+
+  service.yaml.tmpl:
+    service_port: 8080
+```
+
+**prod-overrides.yaml:**
+```yaml
+namespace: production
+image: ${image_registry}/my-api:1.0.0
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10
+    cpu_limit: 2000m
+    memory_limit: 4Gi
+```
+
+Usage:
+```bash
+# Combine base + environment (manual merge required)
+# Use base values as foundation, override with environment-specific
+```
+
+### Strategy 3: Component-Based
+
+**Good for:**
+- Microservices
+- Multiple teams
+- Shared infrastructure
+
+```
+values/
+├── shared/
+│   ├── networking.yaml
+│   ├── monitoring.yaml
+│   └── security.yaml
+├── services/
+│   ├── api-service.yaml
+│   ├── web-service.yaml
+│   └── worker-service.yaml
+└── environments/
+    ├── dev.yaml
+    ├── staging.yaml
+    └── production.yaml
+```
+
+## Best Practices
+
+### 1. Use Descriptive File Names
+
+```
+# Good
+production.yaml
+staging-us-east.yaml
+dev-team-a.yaml
+
+# Bad
+values1.yaml
+config.yaml
+test.yaml
+```
+
+### 2. Include Comments
+
+```yaml
+# Production environment configuration
+# Last updated: 2024-01-15
+# Owner: Platform Team
+
+app_name: my-api
+namespace: production
+
+# Production requires high availability
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10  # Minimum for HA
+    cpu_limit: 2000m  # Based on load testing
+```
+
+### 3. Group Related Variables
+
+```yaml
+# Application configuration
+app_name: my-api
+app_version: 1.0.0
+namespace: production
+
+# Image configuration
+image_registry: ghcr.io/myorg
+image_name: my-api
+image_tag: 1.0.0
+image: ghcr.io/myorg/my-api:1.0.0
+
+# Resource configuration
+template_overrides:
+  deployment.yaml.tmpl:
+    # Scaling
+    replicas: 10
+
+    # CPU resources
+    cpu_request: 1000m
+    cpu_limit: 2000m
+
+    # Memory resources
+    memory_request: 2Gi
+    memory_limit: 4Gi
+```
+
+### 4. Use Consistent Formatting
+
+```yaml
+# Good - consistent structure
+app_name: my-api
+namespace: production
+image: my-api:1.0.0
+
+# Bad - inconsistent
+app_name:    my-api
+namespace:     production
+image:my-api:1.0.0
+```
+
+### 5. Validate Before Committing
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+# Test the values file
+conjure bundle web-app -o .\test-output -f .\values\production.yaml
+
+# Validate output
+kubectl apply --dry-run=client -f .\test-output\
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Test the values file
+conjure bundle web-app -o ./test-output -f ./values/production.yaml
+
+# Validate output
+kubectl apply --dry-run=client -f ./test-output/
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Test the values file
+conjure bundle web-app -o ./test-output -f ./values/production.yaml
+
+# Validate output
+kubectl apply --dry-run=client -f ./test-output/
+```
+
+</OSContent>
+
+### 6. Version Control Values Files
+
+```
+# Good - track in git
+git add values/*.yaml
+git commit -m "Update production values for v1.2.0"
+
+# Document changes
+git diff values/production.yaml
+```
+
+### 7. Keep Secrets Out of Values Files
+
+**Don't do this:**
+```yaml
+database_password: supersecret123  # Bad!
+api_key: sk-1234567890  # Bad!
+```
+
+**Instead:**
+- Use secret management tools (Vault, AWS Secrets Manager, etc.)
+- Reference secrets in templates, don't include values
+- Use environment variables for sensitive data in CI/CD
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Creating Bundles",
+      description: "Learn how to create bundles that use values files.",
+      href: "/docs/creating-bundles"
+    },
+    {
+      title: "conjure bundle",
+      description: "Complete bundle command reference.",
+      href: "/docs/cli-reference/bundle"
+    },
+    {
+      title: "Examples",
+      description: "See real-world values file examples.",
+      href: "/docs/examples"
+    }
+  ]}
+/>

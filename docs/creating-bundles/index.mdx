@@ -1,0 +1,738 @@
+---
+title: Creating Bundles
+description: Learn how to create bundles that generate multiple related files together.
+---
+
+Bundles allow you to group multiple templates together and deploy them as a cohesive unit. This guide shows you how to create bundles from scratch.
+
+## What You'll Create
+
+By the end of this guide, you'll have created a complete bundle that:
+- Generates multiple related Kubernetes manifests
+- Shares common variables across templates
+- Includes template-specific variables
+- Can be deployed with a single command
+
+## What is a Bundle?
+
+A bundle is a directory containing:
+1. **Bundle metadata** (`conjure.json`) - Defines the bundle and its variables
+2. **Template files** (`*.tmpl`) - The actual templates to generate
+
+Unlike standalone templates, bundles:
+- Generate multiple files at once
+- Share variables across all templates
+- Support template-specific overrides
+- Maintain consistent configuration
+
+## When to Use Bundles
+
+**Use bundles when you need to:**
+- Deploy multiple related resources together (Deployment + Service + Ingress)
+- Maintain consistency across multiple files
+- Manage environment-specific configurations
+- Deploy complete applications or infrastructure
+
+**Use standalone templates when you need:**
+- A single file
+- Maximum flexibility
+- Quick one-off generation
+
+## Step 1: Create Bundle Directory
+
+<OSTabs />
+
+<OSContent os="windows">
+
+Navigate to your bundles directory:
+
+```powershell
+Set-Location "C:\conjure-workspace\bundles"
+```
+
+Create the versioned bundle directory:
+
+```powershell
+New-Item -Path "web-app\1.0.0" -ItemType Directory -Force
+Set-Location "web-app\1.0.0"
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+Navigate to your bundles directory:
+
+```bash
+cd ~/conjure-workspace/bundles
+```
+
+Create the versioned bundle directory:
+
+```bash
+mkdir -p web-app/1.0.0
+cd web-app/1.0.0
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+Navigate to your bundles directory:
+
+```bash
+cd ~/conjure-workspace/bundles
+```
+
+Create the versioned bundle directory:
+
+```bash
+mkdir -p web-app/1.0.0
+cd web-app/1.0.0
+```
+
+</OSContent>
+
+## Step 2: Create Bundle Metadata
+
+Create the `conjure.json` file that defines your bundle:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+New-Item -Path "conjure.json" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+touch conjure.json
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+touch conjure.json
+```
+
+</OSContent>
+
+Open `conjure.json` and add the metadata:
+
+```json
+{
+  "schema_version": "v1",
+  "version": "1.0.0",
+  "bundle_type": "kubernetes",
+  "bundle_name": "web-app",
+  "bundle_description": "Complete web application deployment with service and ingress",
+  "shared_variables": [
+    {
+      "name": "app_name",
+      "description": "Application name",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "namespace",
+      "description": "Kubernetes namespace",
+      "type": "string",
+      "default": "default"
+    },
+    {
+      "name": "image",
+      "description": "Container image (e.g., nginx:latest)",
+      "type": "string",
+      "default": ""
+    }
+  ],
+  "template_variables": {
+    "deployment.yaml.tmpl": [
+      {
+        "name": "replicas",
+        "description": "Number of pod replicas",
+        "type": "int",
+        "default": "3"
+      },
+      {
+        "name": "cpu_limit",
+        "description": "CPU limit (e.g., 500m)",
+        "type": "string",
+        "default": "500m"
+      },
+      {
+        "name": "memory_limit",
+        "description": "Memory limit (e.g., 512Mi)",
+        "type": "string",
+        "default": "512Mi"
+      }
+    ],
+    "service.yaml.tmpl": [
+      {
+        "name": "service_type",
+        "description": "Service type (ClusterIP, NodePort, LoadBalancer)",
+        "type": "string",
+        "default": "ClusterIP"
+      },
+      {
+        "name": "service_port",
+        "description": "Service port",
+        "type": "int",
+        "default": "80"
+      }
+    ],
+    "ingress.yaml.tmpl": [
+      {
+        "name": "enable_tls",
+        "description": "Enable TLS",
+        "type": "bool",
+        "default": "false"
+      },
+      {
+        "name": "host",
+        "description": "Ingress hostname",
+        "type": "string",
+        "default": "example.com"
+      }
+    ]
+  }
+}
+```
+
+## Bundle Metadata Requirements
+
+All bundle metadata files (`conjure.json`) must include these required fields:
+
+```json
+{
+  "schema_version": "v1",
+  "bundle_type": "kubernetes",
+  "bundle_name": "web-app",
+  "bundle_description": "Bundle description",
+  "shared_variables": [],
+  "template_variables": {}
+}
+```
+
+- **schema_version** - Currently only "v1" is supported
+- **bundle_name** - Bundle identifier used in commands
+- **bundle_type** - Classification type (e.g., "kubernetes", "terraform")
+- **bundle_description** - Describes the purpose of the bundle
+- **shared_variables** - Variables available to all templates in the bundle (can be empty)
+- **template_variables** - Template-specific variables (can be empty)
+
+The **version** field is optional. Version is determined by the directory name (e.g., `1.0.0/`).
+
+### Variable Requirements
+
+All variables (both shared and template-specific) must include three required fields:
+
+**type** - Must be one of: "string", "int", or "bool"
+
+**description** - Helps users understand the variable's purpose
+
+**name** - The variable identifier used in templates
+
+### Required Default Variables
+
+Variables with `"default": ""` are required. The user must provide a value via CLI flags, values files, or interactive prompts. Variables with non-empty defaults are optional.
+
+```json
+{
+  "name": "app_name",
+  "description": "Application name",
+  "type": "string",
+  "default": ""
+}
+```
+
+## Step 3: Create Template Files
+
+Now create the template files referenced in the bundle metadata.
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+New-Item -Path "deployment.yaml.tmpl" -ItemType File
+New-Item -Path "service.yaml.tmpl" -ItemType File
+New-Item -Path "ingress.yaml.tmpl" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+touch deployment.yaml.tmpl service.yaml.tmpl ingress.yaml.tmpl
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+touch deployment.yaml.tmpl service.yaml.tmpl ingress.yaml.tmpl
+```
+
+</OSContent>
+
+### deployment.yaml.tmpl
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.app_name}}-deployment
+  namespace: {{.namespace}}
+  labels:
+    app: {{.app_name}}
+spec:
+  replicas: {{.replicas}}
+  selector:
+    matchLabels:
+      app: {{.app_name}}
+  template:
+    metadata:
+      labels:
+        app: {{.app_name}}
+    spec:
+      containers:
+      - name: {{.app_name}}
+        image: {{.image}}
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: {{.cpu_limit}}
+            memory: {{.memory_limit}}
+          requests:
+            cpu: 100m
+            memory: 128Mi
+```
+
+### service.yaml.tmpl
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.app_name}}-service
+  namespace: {{.namespace}}
+  labels:
+    app: {{.app_name}}
+spec:
+  type: {{.service_type}}
+  selector:
+    app: {{.app_name}}
+  ports:
+  - port: {{.service_port}}
+    targetPort: 8080
+    protocol: TCP
+```
+
+### ingress.yaml.tmpl
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{.app_name}}-ingress
+  namespace: {{.namespace}}
+  labels:
+    app: {{.app_name}}
+  {{- if .enable_tls}}
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  {{- end}}
+spec:
+  {{- if .enable_tls}}
+  tls:
+  - hosts:
+    - {{.host}}
+    secretName: {{.app_name}}-tls
+  {{- end}}
+  rules:
+  - host: {{.host}}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{.app_name}}-service
+            port:
+              number: {{.service_port}}
+```
+
+## Step 4: Test Your Bundle
+
+### Create Test Values File
+
+<OSTabs />
+
+<OSContent os="windows">
+
+Navigate to your workspace:
+
+```powershell
+Set-Location "C:\conjure-workspace"
+```
+
+Create test values file:
+
+```powershell
+New-Item -Path "web-app-test.yaml" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+Navigate to your workspace:
+
+```bash
+cd ~/conjure-workspace
+```
+
+Create test values file:
+
+```bash
+touch web-app-test.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+Navigate to your workspace:
+
+```bash
+cd ~/conjure-workspace
+```
+
+Create test values file:
+
+```bash
+touch web-app-test.yaml
+```
+
+</OSContent>
+
+Add test values:
+
+```yaml
+# Shared variables (used by all templates)
+app_name: my-api
+namespace: testing
+image: nginx:latest
+
+# Template-specific overrides
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 2
+    cpu_limit: 200m
+    memory_limit: 256Mi
+
+  service.yaml.tmpl:
+    service_type: NodePort
+    service_port: 8080
+
+  ingress.yaml.tmpl:
+    enable_tls: true
+    host: my-api.example.com
+```
+
+### Generate Bundle
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+# Generate with values file
+conjure bundle web-app -o .\test-output -f .\web-app-test.yaml
+
+# View generated files
+Get-ChildItem .\test-output
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Generate with values file
+conjure bundle web-app -o ./test-output -f ./web-app-test.yaml
+
+# View generated files
+ls -l ./test-output
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Generate with values file
+conjure bundle web-app -o ./test-output -f ./web-app-test.yaml
+
+# View generated files
+ls -l ./test-output
+```
+
+</OSContent>
+
+Expected output:
+```
+test-output/
+├── deployment.yaml
+├── service.yaml
+└── ingress.yaml
+```
+
+### Verify Output
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+# Check deployment
+Get-Content .\test-output\deployment.yaml
+
+# Validate with kubectl (if available)
+kubectl apply --dry-run=client -f .\test-output\
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Check deployment
+cat ./test-output/deployment.yaml
+
+# Validate with kubectl (if available)
+kubectl apply --dry-run=client -f ./test-output/
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Check deployment
+cat ./test-output/deployment.yaml
+
+# Validate with kubectl (if available)
+kubectl apply --dry-run=client -f ./test-output/
+```
+
+</OSContent>
+
+## Understanding Bundle Structure
+
+### Bundle Metadata Fields
+
+**bundle_type**
+- Categorizes the bundle (kubernetes, terraform, etc.)
+- Used for filtering with `conjure list bundles -t kubernetes`
+
+**bundle_name**
+- How you reference the bundle in commands
+- Must be unique across all bundles
+
+**bundle_description**
+- Displayed in `conjure list bundles`
+- Helps users understand the bundle's purpose
+
+**shared_variables**
+- Variables available to all templates in the bundle
+- Use for values needed across multiple templates (app_name, namespace, etc.)
+
+**template_variables**
+- Variables specific to individual templates
+- Organized by template filename
+- Use for template-specific configuration
+
+### Variable Organization
+
+**Shared variables are for:**
+- Application name
+- Namespace
+- Image name/tag
+- Environment
+- Common labels
+
+**Template-specific variables are for:**
+- Replica counts (Deployment only)
+- Service types (Service only)
+- Resource limits (Deployment only)
+- Ingress settings (Ingress only)
+
+## Bundle Best Practices
+
+### 1. Use Meaningful Bundle Names
+
+```json
+{
+  "bundle_name": "web-app",           // Good - clear and descriptive
+  "bundle_name": "k8s-bundle-1",      // Bad - unclear purpose
+  "bundle_name": "my-bundle"          // Bad - too generic
+}
+```
+
+### 2. Provide Good Descriptions
+
+```json
+{
+  "bundle_description": "Complete web application deployment with service and ingress",  // Good
+  "bundle_description": "Kubernetes stuff",  // Bad - too vague
+  "bundle_description": "Bundle"  // Bad - not helpful
+}
+```
+
+### 3. Group Related Templates
+
+Include templates that work together:
+- Deployment + Service + Ingress = Complete web app
+- VPC + Subnet + Security Group = Network infrastructure
+- ConfigMap + Secret + Deployment = App with config
+
+Don't mix unrelated templates in one bundle.
+
+### 4. Use Shared Variables Wisely
+
+**Good shared variable:**
+```json
+{
+  "name": "app_name",
+  "description": "Application name used across all resources",
+  "type": "string",
+  "default": ""
+}
+```
+
+**Bad shared variable:**
+```json
+{
+  "name": "deployment_replicas",  // This is deployment-specific
+  "description": "Number of replicas",
+  "type": "int"
+}
+```
+
+### 5. Provide Sensible Defaults
+
+```json
+{
+  "name": "namespace",
+  "description": "Kubernetes namespace",
+  "type": "string",
+  "default": "default"  // Sensible default
+}
+```
+
+```json
+{
+  "name": "replicas",
+  "description": "Number of replicas",
+  "type": "int",
+  "default": "3"  // Works for most cases
+}
+```
+
+### 6. Document Variable Purposes
+
+```json
+{
+  "name": "cpu_limit",
+  "description": "CPU limit in millicores (e.g., 500m, 1000m, 2000m)",
+  "type": "string",
+  "default": "500m"
+}
+```
+
+Include examples in descriptions to help users.
+
+
+## Testing Bundles
+
+### Validation Testing
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+# Generate
+conjure bundle web-app -o .\test-output -f .\test-values.yaml
+
+# Validate all files
+kubectl apply --dry-run=client -f .\test-output\
+
+# Check specific file
+kubectl apply --dry-run=client -f .\test-output\deployment.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Generate
+conjure bundle web-app -o ./test-output -f ./test-values.yaml
+
+# Validate all files
+kubectl apply --dry-run=client -f ./test-output/
+
+# Check specific file
+kubectl apply --dry-run=client -f ./test-output/deployment.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Generate
+conjure bundle web-app -o ./test-output -f ./test-values.yaml
+
+# Validate all files
+kubectl apply --dry-run=client -f ./test-output/
+
+# Check specific file
+kubectl apply --dry-run=client -f ./test-output/deployment.yaml
+```
+
+</OSContent>
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Values Files",
+      description: "Master template overrides and variable organization.",
+      href: "/docs/values-files"
+    },
+    {
+      title: "conjure bundle",
+      description: "Complete bundle command reference.",
+      href: "/docs/cli-reference/bundle"
+    },
+    {
+      title: "Examples",
+      description: "See real-world bundle examples.",
+      href: "/docs/examples"
+    }
+  ]}
+/>

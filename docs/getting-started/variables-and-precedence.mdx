@@ -1,0 +1,462 @@
+---
+title: Values Files & Variable Precedence
+description: Learn how to use values files to manage template variables and understand how variable precedence works in Conjure.
+---
+
+This tutorial will introduce you to values files and variable precedence.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Command-line access on your machine
+- Basic familiarity with your terminal
+
+<Note>
+This tutorial picks up where [getting started](/docs/getting-started) finished and assumes your workspace and configuration are already set up.
+</Note>
+
+## What are Values Files?
+
+While interactive mode and `--var` flags work well for simple scenarios, real-world templates often require many variables. Values files provide a structured way to manage these variables, especially useful for different environments or configurations.
+
+Values files are YAML files that define variable values for your templates. Instead of passing dozens of `--var` flags, you can organize all your variables in a file.
+
+## Create a Template
+
+Before working with values files, you need a template that uses multiple variables. Create a `server-config` template in your workspace.
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+Set-Location "C:\conjure-workspace\templates"
+New-Item -Path "server-config\1.0.0" -ItemType Directory -Force
+New-Item -Path "server-config\1.0.0\conjure.json" -ItemType File
+New-Item -Path "server-config\1.0.0\template.tmpl" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+cd ~/conjure-workspace/templates
+mkdir -p server-config/1.0.0
+touch server-config/1.0.0/conjure.json
+touch server-config/1.0.0/template.tmpl
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+cd ~/conjure-workspace/templates
+mkdir -p server-config/1.0.0
+touch server-config/1.0.0/conjure.json
+touch server-config/1.0.0/template.tmpl
+```
+
+</OSContent>
+
+Open `server-config/1.0.0/conjure.json` and add the metadata:
+
+```json
+{
+  "schema_version": "v1",
+  "version": "1.0.0",
+  "template_name": "server-config",
+  "template_type": "yaml",
+  "template_description": "Server configuration template",
+  "variables": [
+    {
+      "name": "app_name",
+      "description": "Application name",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "environment",
+      "description": "Deployment environment",
+      "type": "string",
+      "default": "development"
+    },
+    {
+      "name": "replicas",
+      "description": "Number of replicas",
+      "type": "int",
+      "default": "3"
+    },
+    {
+      "name": "port",
+      "description": "Application port",
+      "type": "int",
+      "default": "8080"
+    },
+    {
+      "name": "enable_monitoring",
+      "description": "Enable monitoring",
+      "type": "bool",
+      "default": "true"
+    },
+    {
+      "name": "log_level",
+      "description": "Logging level",
+      "type": "string",
+      "default": "info"
+    }
+  ]
+}
+```
+
+Open `server-config/1.0.0/template.tmpl` and add the template content:
+
+```
+# Server Configuration
+app: {{.app_name}}
+environment: {{.environment}}
+replicas: {{.replicas}}
+port: {{.port}}
+monitoring: {{.enable_monitoring}}
+log_level: {{.log_level}}
+```
+
+## Creating a Values File
+
+Now create a values file with all the variables your template needs:
+
+<OSContent os="windows">
+
+Navigate back to your workspace:
+
+```powershell
+Set-Location "C:\conjure-workspace"
+```
+
+Create `values.yaml`:
+
+```powershell
+New-Item -Path "values.yaml" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+Navigate back to your workspace:
+
+```bash
+cd ~/conjure-workspace
+```
+
+Create `values.yaml`:
+
+```bash
+touch values.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+Navigate back to your workspace:
+
+```bash
+cd ~/conjure-workspace
+```
+
+Create `values.yaml`:
+
+```bash
+touch values.yaml
+```
+
+</OSContent>
+
+Open the file and add your variables:
+
+```yaml
+app_name: my-api
+environment: production
+replicas: 5
+port: 3000
+enable_monitoring: true
+log_level: warn
+```
+
+## Using Values Files
+
+Use the `-f` or `--values` flag to apply your values file:
+
+<OSContent os="windows">
+
+```powershell
+conjure template server-config -o server-config.yaml -f values.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure template server-config -o server-config.yaml -f values.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure template server-config -o server-config.yaml -f values.yaml
+```
+
+</OSContent>
+
+Conjure will read all variables from the file and use them to generate your template. The output file `server-config.yaml` will contain:
+
+```
+# Server Configuration
+app: my-api
+environment: production
+replicas: 5
+port: 3000
+monitoring: true
+log_level: warn
+```
+
+## Combining Values Files with CLI Overrides
+
+You can use a values file for most variables and override specific ones with `--var` flags:
+
+<OSContent os="windows">
+
+```powershell
+conjure template server-config -o server-config.yaml -f values.yaml --var replicas=10 --var log_level=debug
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure template server-config -o server-config.yaml -f values.yaml --var replicas=10 --var log_level=debug
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure template server-config -o server-config.yaml -f values.yaml --var replicas=10 --var log_level=debug
+```
+
+</OSContent>
+
+This is useful for:
+- Using a shared values file while overriding specific values per run
+- Testing different configurations without editing the values file
+- Automating deployments where most values are fixed but some change per environment
+
+## Environment-Specific Values
+
+A common pattern is to maintain separate values files per environment. Each file contains all the variables needed for that environment:
+
+**values-production.yaml:**
+```yaml
+app_name: my-api
+environment: production
+replicas: 10
+port: 8080
+enable_monitoring: true
+log_level: warn
+```
+
+**values-development.yaml:**
+```yaml
+app_name: my-api
+environment: development
+replicas: 1
+port: 3000
+enable_monitoring: true
+log_level: debug
+```
+
+Generate for production:
+
+<OSContent os="windows">
+
+```powershell
+conjure template server-config -o server-config.yaml -f values-production.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure template server-config -o server-config.yaml -f values-production.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure template server-config -o server-config.yaml -f values-production.yaml
+```
+
+</OSContent>
+
+Generate for development:
+
+<OSContent os="windows">
+
+```powershell
+conjure template server-config -o server-config.yaml -f values-development.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure template server-config -o server-config.yaml -f values-development.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure template server-config -o server-config.yaml -f values-development.yaml
+```
+
+</OSContent>
+
+## Variable Precedence
+
+When variables are defined in multiple places, Conjure follows this precedence order (highest to lowest):
+
+1. **Command-line `--var` flags** (highest priority)
+2. **Values file** (from the `-f` flag)
+3. **Template defaults** (lowest priority)
+
+<Note>
+Environment variables work for configuration settings (like `CONJURE_TEMPLATES_SOURCE`) but not for template variable values.
+</Note>
+
+### Precedence Example
+
+Given these inputs:
+
+**values.yaml:**
+```yaml
+app_name: default-app
+environment: staging
+replicas: 3
+```
+
+Command:
+
+<OSContent os="windows">
+
+```powershell
+conjure template server-config -o server-config.yaml -f values.yaml --var environment=production --var replicas=10
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure template server-config -o server-config.yaml -f values.yaml --var environment=production --var replicas=10
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure template server-config -o server-config.yaml -f values.yaml --var environment=production --var replicas=10
+```
+
+</OSContent>
+
+Final values:
+```yaml
+app_name: default-app    # From values.yaml
+environment: production  # From --var (overrides values.yaml)
+replicas: 10            # From --var (overrides values.yaml)
+port: 8080              # From template default
+enable_monitoring: true  # From template default
+log_level: info         # From template default
+```
+
+## Best Practices
+
+<Tip>
+**Keep sensitive values out of version control**
+
+Use separate values files for secrets and add them to `.gitignore`:
+
+```bash
+# Commit these
+base.yaml
+production.yaml
+
+# Don't commit these (add to .gitignore)
+secrets.yaml
+local-overrides.yaml
+```
+</Tip>
+
+<Important>
+**Use descriptive file names**
+
+Name your values files clearly to indicate their purpose:
+- `values-base.yaml` - Common values
+- `values-prod.yaml` - Production environment
+- `values-dev.yaml` - Development environment
+- `values-secrets.yaml` - Sensitive data (don't commit!)
+</Important>
+
+<Tip>
+**Document your values files**
+
+Add comments to explain complex values:
+
+```yaml
+# Number of application replicas
+# Production: 10+, Staging: 3-5, Dev: 1
+replicas: 5
+
+# Logging level: debug, info, warn, error
+log_level: warn
+```
+</Tip>
+
+## Next Steps
+
+Now that you understand values files and precedence, learn how to package templates together using bundles:
+
+<CardLinks
+  cards={[
+    {
+      title: "Working with Bundles",
+      description: "Package multiple templates together and distribute them as a unit.",
+      href: "/docs/getting-started/bundles"
+    },
+    {
+      title: "Configuration Reference",
+      description: "Complete reference for all Conjure configuration options.",
+      href: "/docs/configuration"
+    },
+    {
+      title: "Using Remote Repositories",
+      description: "Learn how to use remote template repositories instead of local ones.",
+      href: "/docs/getting-started/remote-repos"
+    }
+  ]}
+/>

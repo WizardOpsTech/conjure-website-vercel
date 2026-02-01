@@ -1,0 +1,60 @@
+---
+title: About Conjure
+description: What conjure is and what it solves.
+---
+
+## What is Conjure?
+Conjure is a CLI tool that helps DevOps engineers, Platform Engineers, and Developers create easily shareable, declarative configuration files from predefined templates.
+
+Tools like Helm, Kustomize, Terraform modules, and similar templating systems already do a great job within their specific domains. They are powerful, focused, and intentionally scoped. Conjure doesn’t try to replace them.
+
+Instead, Conjure addresses a different—and very common—problem: **how teams share configuration knowledge.**
+
+## The Problem Conjure Aims Solves
+
+In many organizations, experienced engineers define the standard way to configure infrastructure, platforms, software, etc. and the users consume that standard. Sometimes the opposite occurs and users are told things such as:
+
+- “Branch a repo and duplicate the configuration for your environment”
+- “Copy a file from a docs page or GitHub repo”
+- “Paste an existing YAML, JSON, or Terraform file”
+- “Just change the values to match your environment”
+
+In an ideal world, none of this would be necessary. Configuration would be fully automated through well-defined platforms, opinionated Terraform modules, CI/CD pipelines, and tools like Helm or Kustomize, ensuring that consumers rarely interact with raw configuration files at all.
+In reality, many organizations—especially smaller teams—do not operate in that ideal state. 
+They are constantly balancing delivery pressure, staffing constraints, and competing business priorities. 
+Building and maintaining a fully abstracted, self-service platform takes time, and when that time isn’t available, teams fall back to the workflows listed above.
+
+The result is that the consumer of those files often has little to no context:
+
+- What values are safe to change?
+- Which fields are environment-specific?
+- Which settings are required, optional, or dangerous?
+- Why does this configuration exist in the first place?
+
+Conjure was created to close that gap.
+
+## Interactive for Guided Use
+With Conjure, experienced team members can publish templates and bundles that encode not just configuration structure, but guidance and intent. These templates define:
+
+- What can be customized
+- What should stay fixed
+- How a configuration should adapt to different environments
+
+Consumers—whether they’re developers or junior engineers—interact with those templates in a guided, declarative way, producing a final configuration they can understand and trust.
+
+For example, a platform engineer may ask a developer to use a Kubernetes CRD for certificates, networking, or security policies. Without deep platform knowledge, the 
+developer may not know which fields are required for their environment or how those values relate to internal standards. With Conjure, that CRD can be templateized, 
+allowing the developer to generate a valid configuration by providing only the inputs that matter—such as environment, region, or certificate authority—without needing to 
+understand every underlying detail. This is exactley like a helm chart, but the developer in this case did not need to learn Helm, but instead produced the exact
+configuration they needed to be used in any way they choose.
+
+Conjure is designed to work across tools and formats, not just one ecosystem. Whether you’re generating Terraform, Kubernetes manifests, JSON, YAML, .ini files, or other 
+declarative artifacts, Conjure provides a consistent way to turn shared expertise into reusable, guided configuration.
+
+## Headless for Automation
+
+Conjure also supports non-interactive mode allowing it to be integrated into automated workflows as needed and enables power users to move faster. 
+
+It supports the popular `-f` or `--values` flag we've come to love to provide all of the values at once. `--var` allows individual key=value pairs to be provided as well, and `--var` and `--values` play well together to merge variables using precedence.
+
+

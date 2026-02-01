@@ -1,0 +1,557 @@
+---
+title: Getting Started
+description: Get started with Conjure by following this step-by-step tutorial to install, configure, and generate your first configuration.
+---
+
+This tutorial will walk you through installing Conjure, setting up your configuration, creating a templates repository, and generating your first configuration.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Command-line access on your machine
+- Basic familiarity with your terminal
+- A text editor installed
+
+<Note>
+This tutorial can be completed in under 10 minutes.
+</Note>
+
+## Select Your Operating System
+
+Choose your operating system to see platform-specific commands throughout this tutorial:
+
+<OSTabs />
+
+## Install Conjure
+
+First, download and install Conjure for your operating system.
+
+<OSContent os="windows">
+
+### Download for Windows
+
+1. Download the latest Windows release from the [download page](/download)
+2. Extract the ZIP file to a location like `C:\Program Files\Conjure`
+3. Add Conjure to your PATH:
+
+```powershell
+$env:Path += ";C:\Program Files\Conjure"
+```
+
+4. Verify the installation:
+
+```powershell
+conjure --version
+```
+
+You should see output displaying the installed version of Conjure.
+
+</OSContent>
+
+<OSContent os="macos">
+
+### Install on macOS
+
+Download the binary manually from the [download page](/download) and move it to your PATH:
+
+```bash
+wget https://github.com/wizardopstechtech/conjure/releases/latest/download/conjure_1.0.0_Darwin_arm64.tar.gz
+sudo mv conjure /usr/local/bin/
+sudo chmod +x /usr/local/bin/conjure
+```
+
+Verify the installation:
+
+```bash
+conjure --version
+```
+
+You should see output displaying the installed version of Conjure.
+
+</OSContent>
+
+<OSContent os="linux">
+
+### Install on Linux
+
+Download the Linux binary from the [download page](/download):
+
+```bash
+wget https://github.com/wizardopstechtech/conjure/releases/latest/download/conjure_1.0.0_Linux_x86_64.tar.gz
+sudo mv conjure-linux-amd64 /usr/local/bin/conjure
+sudo chmod +x /usr/local/bin/conjure
+```
+
+Verify the installation:
+
+```bash
+conjure --version
+```
+
+You should see output displaying the installed version of Conjure.
+
+</OSContent>
+
+## Set Up Your Workspace
+
+Create a dedicated directory for your Conjure projects. This helps keep your templates and configurations organized.
+
+<OSContent os="windows">
+
+```powershell
+New-Item -Path "C:\conjure-workspace" -ItemType Directory
+Set-Location "C:\conjure-workspace"
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+mkdir ~/conjure-workspace
+cd ~/conjure-workspace
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+mkdir ~/conjure-workspace
+cd ~/conjure-workspace
+```
+
+</OSContent>
+
+## Create Your Templates Repository
+
+Conjure requires a templates or bundles repository to operate. This repository contains the template files that Conjure will use to generate artifacts.
+
+Repositories can be hosted in in two ways:
+
+- Learn more about [local repositories](/docs/repositories/local)
+- Learn more about [remote repositories](/docs/repositories/remote)
+
+Create a local repository:
+
+<OSContent os="windows">
+
+```powershell
+New-Item -Path "templates" -ItemType Directory
+New-Item -Path "bundles" -ItemType Directory
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+mkdir templates
+mkdir bundles
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+mkdir templates
+mkdir bundles
+```
+
+</OSContent>
+
+## Create a Configuration File
+
+Conjure needs a configuration file to know where to find your templates and bundles. Create a config file in your workspace.
+
+- Learn more about [conjure configuration files](/docs/configuration)
+
+<OSContent os="windows">
+
+```powershell
+New-Item -Path ".conjure.yaml" -ItemType File
+```
+
+Open `.conjure.yaml` in your text editor and add the following configuration:
+
+```yaml
+templates_source: local
+bundles_source: local
+templates_local_dir: C:\conjure-workspace
+bundles_local_dir: C:\conjure-workspace
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+touch ~/.conjure.yaml
+```
+
+Open `~/.conjure.yaml` in your text editor and add the following configuration. Replace `<username>` with your macOS username:
+
+```yaml
+templates_source: local
+bundles_source: local
+templates_local_dir: /Users/<username>/conjure-workspace
+bundles_local_dir: /Users/<username>/conjure-workspace
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+touch ~/.conjure.yaml
+```
+
+Open `~/.conjure.yaml` in your text editor and add the following configuration. Replace `<username>` with your Linux username:
+
+```yaml
+templates_source: local
+bundles_source: local
+templates_local_dir: /home/<username>/conjure-workspace
+bundles_local_dir: /home/<username>/conjure-workspace
+```
+
+</OSContent>
+
+<Important>
+Conjure does not expand the `~` shorthand in directory paths. Use fully qualified absolute paths in your configuration file.
+</Important>
+
+## Create Your First Template
+
+Create a simple template to demonstrate Conjure's capabilities. Templates are at the core of how conjure operates. They use Go templating syntax to allow the creation of flexible templates.
+
+- Learn more about [conjure templates](/docs/creating-templates)
+
+<Note>
+Templates are organized in versioned directories following the pattern `templates/{name}/{version}/`. Each version contains a `conjure.json` metadata file and a `template.tmpl` file. Variables with `default: ""` are required and must be provided by the user.
+</Note>
+
+
+<OSContent os="windows">
+
+```powershell
+Set-Location "templates"
+```
+
+Create the versioned template directory:
+
+```powershell
+New-Item -Path "greeting\1.0.0" -ItemType Directory -Force
+```
+
+Create the template files:
+
+```powershell
+New-Item -Path "greeting\1.0.0\template.tmpl" -ItemType File
+New-Item -Path "greeting\1.0.0\conjure.json" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+cd templates
+```
+
+Create the versioned template directory:
+
+```bash
+mkdir -p greeting/1.0.0
+```
+
+Create the template files:
+
+```bash
+touch greeting/1.0.0/template.tmpl
+touch greeting/1.0.0/conjure.json
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+cd templates
+```
+
+Create the versioned template directory:
+
+```bash
+mkdir -p greeting/1.0.0
+```
+
+Create the template files:
+
+```bash
+touch greeting/1.0.0/template.tmpl
+touch greeting/1.0.0/conjure.json
+```
+
+</OSContent>
+
+Open `greeting/1.0.0/template.tmpl` in your text editor and add the following content:
+
+```
+Hello, {{.name}}!
+
+Welcome to Conjure, {{.name}}. You are part of the {{.team}} team.
+This is your first generated template.
+```
+
+Open `greeting/1.0.0/conjure.json` and add the metadata:
+
+```json
+{
+  "schema_version": "v1",
+  "version": "1.0.0",
+  "template_name": "greeting",
+  "template_type": "txt",
+  "template_description": "A simple greeting template",
+  "variables": [
+    {
+      "name": "name",
+      "description": "Your name",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "team",
+      "description": "Your team name",
+      "type": "string",
+      "default": "Platform Engineering"
+    }
+  ]
+}
+```
+
+## List Templates
+
+List the template you just created. Listing templates and bundles is useful for browsing the templates and bundles repositories.
+
+- Learn more about using the [conjure list command](/docs/cli-reference/list) to explore repositories and find templates and bundles important to you.
+
+<OSContent os="windows">
+
+```powershell
+conjure list templates
+```
+
+Expected output:
+
+```powershell
+Available Templates:
+
+  greeting
+    Description: A simple greeting template
+    Type: txt
+    Latest: 1.0.0
+
+Total: 1 template
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure list templates
+```
+
+Expected output:
+
+```bash
+Available Templates:
+
+  greeting
+    Description: A simple greeting template
+    Type: txt
+    Latest: 1.0.0
+
+Total: 1 template
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure list templates
+```
+
+Expected output:
+
+```bash
+Available Templates:
+
+  greeting
+    Description: A simple greeting template
+    Type: txt
+    Latest: 1.0.0
+
+Total: 1 template
+```
+
+</OSContent>
+
+## Generate Your First Artifact
+
+Now that you have a template, let's use Conjure to generate an artifact from it.
+
+<OSContent os="windows">
+
+Navigate back to your workspace:
+
+```powershell
+Set-Location "C:\conjure-workspace"
+```
+
+Run Conjure to generate from your template:
+
+```powershell
+conjure template greeting -o greeting.txt --var name="DevOps Engineer"
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+Navigate back to your workspace:
+
+```bash
+cd ~/conjure-workspace
+```
+
+Run Conjure to generate from your template:
+
+```bash
+conjure template greeting -o greeting.txt --var name="DevOps Engineer"
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+Navigate back to your workspace:
+
+```bash
+cd ~/conjure-workspace
+```
+
+Run Conjure to generate from your template:
+
+```bash
+conjure template greeting -o greeting.txt --var name="DevOps Engineer"
+```
+
+</OSContent>
+
+You should see output confirming that Conjure generated your artifact:
+
+```
+Using template: greeting v1.0.0 (source: local)
+Using metadata: A simple greeting template
+
+Variables:
+  name = DevOps Engineer
+  team = Platform Engineering
+
+✓ Template rendered successfully
+✓ Output written to: greeting.txt
+```
+
+View the generated file to see your personalized greeting:
+
+<OSContent os="windows">
+
+```powershell
+# View the generated file
+Get-Content greeting.txt
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# View the generated file
+cat greeting.txt
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# View the generated file
+cat greeting.txt
+```
+
+</OSContent>
+
+Expected output:
+
+```
+Hello, DevOps Engineer!
+
+Welcome to Conjure, DevOps Engineer. You are part of the Platform Engineering team.
+This is your first generated template.
+```
+
+## Summary
+
+Congratulations! You've successfully:
+
+- ✓ Installed Conjure
+- ✓ Created a workspace
+- ✓ Configured Conjure
+- ✓ Created your first template
+- ✓ Generated an artifact
+
+## Next Steps
+
+Congratulations! You've completed the basic setup. Continue learning with these guides:
+
+<CardLinks
+  cards={[
+    {
+      title: "Interactive Mode",
+      description: "Learn how to use guided prompts for users less familiar with templates.",
+      href: "/docs/getting-started/interactive"
+    },
+    {
+      title: "Variables Files & Precedence",
+      description: "Use YAML files to manage variables and understand precedence rules.",
+      href: "/docs/getting-started/variables-and-precedence"
+    },
+    {
+      title: "Working with Bundles",
+      description: "Package multiple templates together and apply them as a unit.",
+      href: "/docs/getting-started/bundles"
+    }
+  ]}
+/>
+
+### Advanced Topics
+
+<CardLinks
+  cards={[
+    {
+      title: "Configuration Reference",
+      description: "Complete reference for all Conjure configuration options.",
+      href: "/docs/config"
+    },
+    {
+      title: "Creating Templates",
+      description: "Build powerful templates with variables, conditionals, and loops.",
+      href: "/docs/conjuring-artifacts/template"
+    }
+  ]}
+/>

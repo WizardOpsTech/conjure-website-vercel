@@ -1,0 +1,542 @@
+---
+title: Working with Bundles
+description: Learn how to use bundles to package and apply multiple templates together as a cohesive unit.
+---
+
+Templates are great for generating individual artifacts, but real-world infrastructure and applications often require multiple related configurations. Bundles allow you to package multiple templates together and apply them as a unit.
+
+## What are Bundles?
+
+A bundle is a collection of templates that work together to create a complete solution. Instead of running multiple template commands, you can run a single bundle command that generates everything you need.
+
+### Common Bundle Use Cases
+
+- **Application Deployment**: Kubernetes manifests, ConfigMaps, Secrets, Services
+- **Infrastructure Setup**: Terraform configs, networking rules, IAM policies
+- **CI/CD Pipelines**: GitHub Actions, GitLab CI, Jenkins pipelines
+- **Development Environment**: Docker Compose, env files, local configs
+
+## Creating Your First Bundle
+
+Let's create a bundle that generates a complete web application setup.
+
+<OSTabs />
+
+### Step 1: Create Bundle Directory Structure
+
+<OSContent os="windows">
+
+```powershell
+Set-Location "C:\conjure-workspace\bundles"
+
+New-Item -Path "web-app\1.0.0" -ItemType Directory -Force
+Set-Location "web-app\1.0.0"
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+cd ~/conjure-workspace/bundles
+
+mkdir -p web-app/1.0.0
+cd web-app/1.0.0
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+cd ~/conjure-workspace/bundles
+
+mkdir -p web-app/1.0.0
+cd web-app/1.0.0
+```
+
+</OSContent>
+
+### Step 2: Create Bundle Metadata
+
+Create a `conjure.json` file that defines the bundle and its variables:
+
+<OSContent os="windows">
+
+```powershell
+New-Item -Path "conjure.json" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+touch conjure.json
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+touch conjure.json
+```
+
+</OSContent>
+
+Open `conjure.json` and add the bundle metadata:
+
+```json
+{
+  "schema_version": "v1",
+  "version": "1.0.0",
+  "bundle_type": "kubernetes",
+  "bundle_name": "web-app",
+  "bundle_description": "Complete web application deployment bundle",
+  "shared_variables": [
+    {
+      "name": "app_name",
+      "description": "Name of your application",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "namespace",
+      "description": "Kubernetes namespace",
+      "type": "string",
+      "default": "default"
+    },
+    {
+      "name": "port",
+      "description": "Application port",
+      "type": "int",
+      "default": "8080"
+    }
+  ],
+  "template_variables": {
+    "deployment.yaml.tmpl": [
+      {
+        "name": "replicas",
+        "description": "Number of pod replicas",
+        "type": "int",
+        "default": "3"
+      },
+      {
+        "name": "image",
+        "description": "Container image",
+        "type": "string",
+        "default": ""
+      }
+    ],
+    "service.yaml.tmpl": [
+      {
+        "name": "service_type",
+        "description": "Service type (ClusterIP, LoadBalancer)",
+        "type": "string",
+        "default": "ClusterIP"
+      }
+    ]
+  }
+}
+```
+
+<Note>
+Shared variables are available to all templates in the bundle. Template-specific variables are scoped to individual template files.
+</Note>
+
+### Step 3: Create Template Files
+
+Now create the template files in your bundle directory:
+
+<OSContent os="windows">
+
+```powershell
+New-Item -Path "deployment.yaml.tmpl" -ItemType File
+New-Item -Path "service.yaml.tmpl" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+touch deployment.yaml.tmpl
+touch service.yaml.tmpl
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+touch deployment.yaml.tmpl
+touch service.yaml.tmpl
+```
+
+</OSContent>
+
+Open `deployment.yaml.tmpl` and add:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.app_name}}-deployment
+  namespace: {{.namespace}}
+spec:
+  replicas: {{.replicas}}
+  selector:
+    matchLabels:
+      app: {{.app_name}}
+  template:
+    metadata:
+      labels:
+        app: {{.app_name}}
+    spec:
+      containers:
+      - name: {{.app_name}}
+        image: {{.image}}
+        ports:
+        - containerPort: {{.port}}
+```
+
+Open `service.yaml.tmpl` and add:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.app_name}}-service
+  namespace: {{.namespace}}
+spec:
+  type: {{.service_type}}
+  selector:
+    app: {{.app_name}}
+  ports:
+  - port: 80
+    targetPort: {{.port}}
+```
+
+### Step 4: Apply the Bundle
+
+Now you can generate all templates in the bundle with a single command:
+
+<OSContent os="windows">
+
+```powershell
+# Navigate back to workspace
+Set-Location "C:\conjure-workspace"
+
+# Apply the bundle
+conjure bundle web-app -o ./output
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Navigate back to workspace
+cd ~/conjure-workspace
+
+# Apply the bundle
+conjure bundle web-app -o ./output
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Navigate back to workspace
+cd ~/conjure-workspace
+
+# Apply the bundle
+conjure bundle web-app -o ./output
+```
+
+</OSContent>
+
+Since no variables are provided via `--var` or `-f`, Conjure automatically enters interactive mode. You will see a prompt that displays one variable at a time with its description, type, and default value. Required variables (those with no default) are marked with an asterisk.
+
+After entering all variables, the prompt displays:
+
+```
+✓ All variables collected!
+```
+
+Conjure then asks if you want to add template-specific overrides. This allows you to override a shared variable for a specific template. For example, you could set a different `namespace` value for just `service.yaml.tmpl` while keeping the original value for `deployment.yaml.tmpl`.
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Template-Specific Overrides
+Override shared variables for specific templates
+
+Add a template-specific override? (y/n):
+```
+
+If you select `n` or after finishing overrides, Conjure renders and writes the output files:
+
+```
+  ✓ Rendered: deployment.yaml
+  ✓ Rendered: service.yaml
+
+✓ Bundle rendered successfully
+✓ 2 files written to: ./output
+```
+
+## Using Values Files with Bundles
+
+Just like templates, bundles support values files. This bypasses interactive mode and provides all variable values at once:
+
+<OSContent os="windows">
+
+Create `web-app-prod.yaml`:
+
+```powershell
+New-Item -Path "web-app-prod.yaml" -ItemType File
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+Create `web-app-prod.yaml`:
+
+```bash
+touch web-app-prod.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+Create `web-app-prod.yaml`:
+
+```bash
+touch web-app-prod.yaml
+```
+
+</OSContent>
+
+Add your values:
+
+```yaml
+# Shared variables (used by all templates)
+app_name: my-api
+namespace: production
+port: 8080
+
+# Template-specific variables
+replicas: 5
+image: my-api:1.0.0
+service_type: LoadBalancer
+```
+
+Apply the bundle with the values file:
+
+<OSContent os="windows">
+
+```powershell
+conjure bundle web-app -o ./output -f web-app-prod.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure bundle web-app -o ./output -f web-app-prod.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure bundle web-app -o ./output -f web-app-prod.yaml
+```
+
+</OSContent>
+
+Expected output:
+
+```
+Using bundle: web-app v1.0.0 (source: local)
+Description: Complete web application deployment bundle
+Type: kubernetes
+
+  ✓ Rendered: deployment.yaml
+  ✓ Rendered: service.yaml
+
+✓ Bundle rendered successfully
+✓ 2 files written to: ./output
+```
+
+## Template-Specific Overrides in Values Files
+
+You can override shared variables for specific templates using the `template_overrides` section in your values file. This is useful when a shared variable like `namespace` needs a different value for one template:
+
+```yaml
+# Shared variables (used by all templates)
+app_name: my-api
+namespace: production
+port: 8080
+
+# Template-specific variables
+replicas: 5
+image: my-api:1.0.0
+service_type: LoadBalancer
+
+# Override shared variables for specific templates
+template_overrides:
+  service.yaml.tmpl:
+    namespace: service-namespace
+```
+
+In this example, `deployment.yaml.tmpl` uses `namespace: production` while `service.yaml.tmpl` uses `namespace: service-namespace`.
+
+You can also apply template-specific overrides from the command line using the `template.tmpl:key=value` format:
+
+<OSContent os="windows">
+
+```powershell
+conjure bundle web-app -o ./output -f web-app-prod.yaml --var service.yaml.tmpl:namespace=service-namespace
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure bundle web-app -o ./output -f web-app-prod.yaml --var service.yaml.tmpl:namespace=service-namespace
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure bundle web-app -o ./output -f web-app-prod.yaml --var service.yaml.tmpl:namespace=service-namespace
+```
+
+</OSContent>
+
+## Listing Available Bundles
+
+See all available bundles in your repository:
+
+<OSContent os="windows">
+
+```powershell
+conjure list bundles
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure list bundles
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure list bundles
+```
+
+</OSContent>
+
+Expected output:
+
+```
+Available Bundles:
+
+  web-app
+    Description: Complete web application deployment bundle
+    Type: kubernetes
+    Latest: 1.0.0
+
+Total: 1 bundle
+```
+
+To see all available versions of each bundle:
+
+```bash
+conjure list bundles --versions
+```
+
+## Best Practices
+
+<Important>
+**Version your bundles**
+
+Always specify a version in your `conjure.json`:
+
+```json
+{
+  "schema_version": "v1",
+  "version": "1.2.0",
+  "bundle_name": "web-app",
+  "bundle_type": "kubernetes",
+  "bundle_description": "...",
+  "shared_variables": [],
+  "template_variables": {}
+}
+```
+
+Use semantic versioning (x.x.x format) to track changes and maintain compatibility.
+</Important>
+
+<Tip>
+**Document bundle requirements**
+
+Include a README with your bundle explaining:
+- What the bundle generates
+- Required infrastructure or dependencies
+- Example values files
+- How to customize the bundle
+</Tip>
+
+<Note>
+**Test bundles thoroughly**
+
+Before sharing bundles with your team:
+1. Test with minimal values
+2. Test with production-like values
+3. Verify all outputs are correct
+4. Document any manual steps needed after bundle application
+</Note>
+
+## Next Steps
+
+You now understand the complete Conjure workflow from simple templates to complex bundles:
+
+<CardLinks
+  cards={[
+    {
+      title: "Using the Starter Repository",
+      description: "Try production-ready templates and bundles from the conjure-get-started repository.",
+      href: "/docs/getting-started/conjure-get-started"
+    },
+    {
+      title: "Creating Templates",
+      description: "Build your own templates with variables, conditionals, and loops.",
+      href: "/docs/creating-templates"
+    },
+    {
+      title: "Configuration Reference",
+      description: "Complete reference for all Conjure configuration options.",
+      href: "/docs/configuration"
+    },
+    {
+      title: "Using Remote Repositories",
+      description: "Learn how to use remote template repositories instead of local ones.",
+      href: "/docs/getting-started/remote-repos"
+    }
+  ]}
+/>

@@ -1,0 +1,121 @@
+---
+title: CLI Reference
+description: Complete reference for all Conjure commands and their options.
+---
+
+Conjure provides a simple but powerful command-line interface for generating files from templates and bundles.
+
+## Command Overview
+
+Conjure has four main commands:
+
+| Command | Purpose | Output |
+|---------|---------|--------|
+| `conjure template` | Generate from a single template | One file |
+| `conjure bundle` | Generate from a bundle | Multiple files |
+| `conjure list` | List available templates or bundles | Information only |
+| `conjure repo index` | Generate repository index files | index.json file |
+
+## Global Flags
+
+These flags work with all commands:
+
+### --config
+
+Specify a custom configuration file location.
+
+```bash
+conjure --config /path/to/config.yaml template deployment -o deployment.yaml
+```
+
+**Default:** Looks for `~/.conjure.yaml`
+
+### --version, -v
+
+Display Conjure version information.
+
+```bash
+conjure --version
+# Output:
+# conjure version X.Y.Z
+# commit: abc1234
+# built: 2026-01-15T10:30:00Z
+```
+
+## Common Patterns
+
+### Interactive vs Non-Interactive
+
+**Interactive Mode (auto-enabled when no variables provided):**
+```bash
+conjure template deployment -o deployment.yaml
+# Conjure will prompt for all variables
+```
+
+**Non-Interactive Mode (with values file):**
+```bash
+conjure template deployment -o deployment.yaml -f values.yaml
+```
+
+**Non-Interactive Mode (with CLI variables):**
+```bash
+conjure template deployment -o deployment.yaml \
+  --var app_name=my-app \
+  --var replicas=3
+```
+
+### Combining Methods
+
+You can combine values files with CLI overrides:
+
+```bash
+conjure template deployment -o deployment.yaml \
+  -f base-values.yaml \
+  --var replicas=10
+```
+
+The `--var` flags override values from the file.
+
+### Version Selection
+
+**Use latest version (default):**
+```bash
+conjure template deployment -o deployment.yaml
+```
+
+**Use specific version:**
+```bash
+conjure template deployment --version 1.0.0 -o deployment.yaml
+```
+
+**List all available versions:**
+```bash
+conjure list templates --versions
+```
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "conjure template",
+      description: "Generate files from individual templates.",
+      href: "/docs/cli-reference/template"
+    },
+    {
+      title: "conjure bundle",
+      description: "Generate files from bundles.",
+      href: "/docs/cli-reference/bundle"
+    },
+    {
+      title: "conjure list",
+      description: "List available templates and bundles.",
+      href: "/docs/cli-reference/list"
+    },
+    {
+      title: "conjure repo index",
+      description: "Generate repository index files.",
+      href: "/docs/cli-reference/repo-index"
+    }
+  ]}
+/>

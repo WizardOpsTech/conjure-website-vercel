@@ -1,0 +1,353 @@
+---
+title: CI/CD with GitHub Actions
+description: Automate infrastructure generation using Conjure in GitHub Actions pipelines.
+---
+
+This example demonstrates how to integrate Conjure into GitHub Actions workflows to automatically generate Kubernetes manifests and deploy applications. The workflow uses the [conjure-get-started](https://github.com/wizardopstechTech/conjure-get-started) remote repository for templates and bundles.
+
+## Overview
+
+This CI/CD pipeline will:
+- Install Conjure in the GitHub Actions runner
+- Generate Kubernetes manifests from remote templates
+- Deploy manifests to a Kubernetes cluster
+- Support multiple environments (dev, staging, production)
+
+## Prerequisites
+
+- GitHub repository with your application code
+- Kubernetes cluster access
+- `KUBECONFIG` secret configured in GitHub repository settings
+
+## Configuration
+
+### Step 1: Create Conjure Configuration
+
+Create `.conjure.yaml` in your repository root:
+
+```yaml
+templates_source: remote
+templates_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+bundles_source: remote
+bundles_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+```
+
+<Note>
+Using a remote source ensures your CI/CD pipeline always has access to templates without needing to check them into your repository.
+</Note>
+
+### Step 2: Create Values Files
+
+Create environment-specific values files in `infra/values/`:
+
+**infra/values/dev.yaml:**
+
+```yaml
+# Development environment configuration
+app_name: myapp
+namespace: dev
+image: ghcr.io/myorg/myapp:dev
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 1
+    container_port: 8080
+    cpu_request: 100m
+    cpu_limit: 200m
+    memory_request: 128Mi
+    memory_limit: 256Mi
+
+  service.yaml.tmpl:
+    service_type: ClusterIP
+    service_port: 80
+    container_port: 8080
+
+  ingress.yaml.tmpl:
+    hostname: myapp.dev.example.com
+    enable_tls: false
+    tls_secret_name: myapp-staging-tls
+```
+
+**infra/values/staging.yaml:**
+
+```yaml
+# Staging environment configuration
+app_name: myapp
+namespace: staging
+image: ghcr.io/myorg/myapp:staging
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 3
+    container_port: 8080
+    cpu_request: 200m
+    cpu_limit: 500m
+    memory_request: 256Mi
+    memory_limit: 512Mi
+
+  service.yaml.tmpl:
+    service_type: ClusterIP
+    service_port: 80
+    container_port: 8080
+
+  ingress.yaml.tmpl:
+    hostname: myapp.staging.example.com
+    enable_tls: true
+    tls_secret_name: myapp-staging-tls
+```
+
+**infra/values/production.yaml:**
+
+```yaml
+# Production environment configuration
+app_name: myapp
+namespace: production
+image: ghcr.io/myorg/myapp:production
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10
+    container_port: 8080
+    cpu_request: 500m
+    cpu_limit: 2000m
+    memory_request: 1Gi
+    memory_limit: 4Gi
+
+  service.yaml.tmpl:
+    service_type: LoadBalancer
+    service_port: 80
+    container_port: 8080
+
+  ingress.yaml.tmpl:
+    hostname: myapp.example.com
+    enable_tls: true
+    tls_secret_name: myapp-production-tls
+```
+
+### Step 3: Create GitHub Actions Workflow
+
+Create `.github/workflows/deploy.yml`:
+
+```yaml
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: development
+      url: https://myapp.dev.example.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Conjure
+        run: |
+          curl -L https://github.com/wizardopstechTech/conjure/releases/latest/download/conjure-linux-amd64 -o /usr/local/bin/conjure
+          chmod +x /usr/local/bin/conjure
+          conjure --version
+
+      - name: Generate Kubernetes manifests
+        run: |
+          conjure bundle k8s-web-app \
+            --config .conjure.yaml \
+            -o ./manifests \
+            -f ./infra/values/dev.yaml \
+            --var "image=${{ needs.build.outputs.image-tag }}" 
+
+      - name: Display generated manifests
+        run: |
+          echo "Generated manifests:"
+          ls -la ./manifests/
+          cat ./manifests/*.yaml
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_DEV }}" | base64 -d > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f ./manifests/ --namespace=dev
+          kubectl rollout status deployment/myapp --namespace=dev --timeout=5m
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://myapp.staging.example.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Conjure
+        run: |
+          curl -L https://github.com/wizardopstechTech/conjure/releases/latest/download/conjure-linux-amd64 -o /usr/local/bin/conjure
+          chmod +x /usr/local/bin/conjure
+          conjure --version
+
+      - name: Generate Kubernetes manifests
+        run: |
+          conjure bundle k8s-web-app \
+            --config .conjure.yaml \
+            -o ./manifests \
+            -f ./infra/values/staging.yaml \
+            --var "image=${{ needs.build.outputs.image-tag }}"
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f ./manifests/ --namespace=staging
+          kubectl rollout status deployment/myapp --namespace=staging --timeout=5m
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://myapp.example.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Conjure
+        run: |
+          curl -L https://github.com/wizardopstechTech/conjure/releases/latest/download/conjure-linux-amd64 -o /usr/local/bin/conjure
+          chmod +x /usr/local/bin/conjure
+          conjure --version
+
+      - name: Generate Kubernetes manifests
+        run: |
+          conjure bundle k8s-web-app \
+            --config .conjure.yaml \
+            -o ./manifests \
+            -f ./infra/values/production.yaml \
+            --var "image=${{ needs.build.outputs.image-tag }}"
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_PRODUCTION }}" | base64 -d > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f ./manifests/ --namespace=production
+          kubectl rollout status deployment/myapp --namespace=production --timeout=5m
+```
+
+## Key Features
+
+All required variables must be provided via values files or `--var` flags.
+
+### Dynamic Image Tags
+
+The workflow passes the built Docker image tag to Conjure using `--var`:
+
+```bash
+--var "image=${{ needs.build.outputs.image-tag }}"
+```
+
+This overrides the image value from the values file ( if provided ) with the freshly built image.
+
+### Environment-Specific Deployments
+
+The workflow uses different triggers and values files for each environment:
+
+- **Development**: Triggers on push to `develop` branch, uses `dev.yaml`
+- **Staging**: Triggers on push to `main` branch, uses `staging.yaml`
+- **Production**: Triggers on version tags (e.g., `v1.0.0`), uses `production.yaml`
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Kubernetes Web App Example",
+      description: "Learn more about the k8s-web-app bundle structure.",
+      href: "/docs/examples/kubernetes-web-app"
+    },
+    {
+      title: "Creating Bundles",
+      description: "Create custom bundles for your workflows.",
+      href: "/docs/creating-bundles"
+    },
+    {
+      title: "Configuration Reference",
+      description: "Complete configuration options.",
+      href: "/docs/configuration"
+    }
+  ]}
+/>

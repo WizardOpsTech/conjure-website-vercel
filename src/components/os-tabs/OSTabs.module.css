@@ -1,0 +1,66 @@
+.osTabs {
+  margin: 24px 0;
+}
+
+.tabButtons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--gray-2);
+  padding-bottom: 8px;
+}
+
+.tabButton {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--gray-5);
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.tabButton:hover {
+  background: var(--gray-1);
+  color: var(--gray-8);
+}
+
+.tabButton.active {
+  background: linear-gradient(135deg, var(--brand-color) 0%, var(--brand-teal) 100%);
+  color: var(--white);
+}
+
+.tabButton.active::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(135deg, var(--brand-color) 0%, var(--brand-teal) 100%);
+}
+
+.osContent {
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Light mode hover override */
+:global(html[data-theme="light"]) .tabButton:hover:not(.active) {
+  background: rgba(63, 224, 208, 0.12);
+  color: #1A1A1A;
+}

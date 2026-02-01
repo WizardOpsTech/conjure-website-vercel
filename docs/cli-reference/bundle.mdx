@@ -1,0 +1,191 @@
+---
+title: conjure bundle
+description: Generate multiple files from a bundle of templates.
+---
+
+The `conjure bundle` command generates multiple related files from a bundle, allowing you to deploy complete solutions with consistent configuration.
+
+## Synopsis
+
+```bash
+conjure bundle <bundle-name> -o <output-directory> [flags]
+```
+
+## Arguments
+
+### bundle-name
+
+The name of the bundle to use, as defined in the bundle's `conjure.json` metadata.
+
+**Examples:**
+```bash
+conjure bundle web-app -o ./output
+conjure bundle kubernetes-deployment -o ./k8s
+conjure bundle microservices -o ./manifests
+```
+
+Conjure searches all bundle directories and matches by the `bundle_name` field in `conjure.json`.
+
+## Required Flags
+
+### -o, --output
+
+Directory where generated files will be written.
+
+```bash
+conjure bundle web-app -o ./k8s
+```
+
+**Must be specified.** The command will fail without it.
+
+**Directory creation:**
+- Output directory is created if it doesn't exist
+- Subdirectories are preserved from template output paths
+
+## Optional Flags
+
+### --version
+
+Specify which version of the bundle to use.
+
+```bash
+conjure bundle web-app --version 1.2.0 -o ./output
+```
+
+**Default:** Uses the highest semantic version available when not specified.
+
+**Examples:**
+```bash
+# Use latest version (default)
+conjure bundle web-app -o ./output
+
+# Use specific version
+conjure bundle web-app --version 2.0.0 -o ./output
+```
+
+### -v, --var
+
+Set variables using `key=value` format.
+
+**Shared variables (apply to all templates):**
+```bash
+conjure bundle web-app -o ./output \
+  --var app_name=my-api \
+  --var namespace=production \
+  --var port=8080
+```
+
+**Template-specific variables:**
+```bash
+conjure bundle web-app -o ./output \
+  --var app_name=my-api \
+  --var deployment.yaml.tmpl:replicas=5 \
+  --var service.yaml.tmpl:service_type=LoadBalancer
+```
+
+**Can be specified multiple times:**
+```bash
+conjure bundle web-app -o ./output \
+  -v app_name=my-api \
+  -v namespace=prod \
+  -v deployment.yaml.tmpl:replicas=5 \
+  -v service.yaml.tmpl:service_type=LoadBalancer
+```
+
+### -f, --values
+
+Provide variables from a YAML file.
+
+```bash
+conjure bundle web-app -o ./output -f production.yaml
+```
+
+**Values file format:**
+```yaml
+# Shared variables (apply to all templates)
+app_name: my-api
+namespace: production
+port: 8080
+
+# Template-specific overrides
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 5
+    cpu_limit: 1000m
+  service.yaml.tmpl:
+    service_type: LoadBalancer
+    service_port: 443
+```
+
+## Template-Specific Overrides
+
+Bundles support overriding variables for specific templates.
+
+### Via CLI Flags
+
+Use the format `template.tmpl:key=value`:
+
+```bash
+conjure bundle web-app -o ./output \
+  --var app_name=my-api \
+  --var deployment.yaml.tmpl:replicas=10 \
+  --var deployment.yaml.tmpl:cpu_limit=2000m \
+  --var service.yaml.tmpl:service_type=LoadBalancer
+```
+
+### Via Values File
+
+Use the `template_overrides` section:
+
+```yaml
+# Shared variables
+app_name: my-api
+namespace: production
+
+# Template-specific overrides
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10
+    cpu_limit: 2000m
+    memory_limit: 4Gi
+
+  service.yaml.tmpl:
+    service_type: LoadBalancer
+    service_port: 443
+
+  ingress.yaml.tmpl:
+    enable_tls: true
+    tls_secret_name: my-tls-secret
+```
+
+### Override Precedence
+
+When the same variable is defined in multiple places:
+
+1. **CLI template overrides** (`--var template.tmpl:key=value`)
+2. **Values file template overrides** (`template_overrides:`)
+3. **CLI shared variables** (`--var key=value`)
+4. **Values file shared variables**
+5. **Bundle defaults**
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Creating Bundles",
+      description: "Learn how to create your own bundles.",
+      href: "/docs/creating-bundles"
+    },
+    {
+      title: "Values Files",
+      description: "Master template overrides and variable organization.",
+      href: "/docs/values-files"
+    },
+    {
+      title: "conjure template",
+      description: "Generate individual files with templates.",
+      href: "/docs/cli-reference/template"
+    }
+  ]}
+/>

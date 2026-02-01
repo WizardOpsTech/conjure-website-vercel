@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Conjure Issues
+    url: https://github.com/wizardopstech/conjure
+    about: "If you're looking to file an issue about conjure itself, click here!"
+  - name: Conjure Website
+    url: https://conjure.wizardops.dev
+    about: "Conjure is a template-driven configuration generator for DevOps, Platform Engineers, and Developers."

@@ -1,0 +1,197 @@
+---
+title: Build Conjure from Source
+description: |-
+  Build Conjure from source code. Requires Go 1.24 or later.
+---
+
+<Tip>
+
+**Building from source is not required for most users.**
+Prebuilt binaries are available on the [downloads page](/download).
+
+</Tip>
+
+## Prerequisites
+
+- [Go](https://go.dev/dl/) 1.24 or later
+- [Git](https://git-scm.com/)
+
+Verify Go is installed:
+
+```bash
+go version
+```
+
+## Clone the Repository
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+git clone https://github.com/WizardOpsTech/conjure.git
+Set-Location conjure
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+git clone https://github.com/WizardOpsTech/conjure.git
+cd conjure
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+git clone https://github.com/WizardOpsTech/conjure.git
+cd conjure
+```
+
+</OSContent>
+
+## Build
+
+### Using Make
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+go build -o bin\conjure.exe main.go
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+make build
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+make build
+```
+
+</OSContent>
+
+The binary is output to `bin/conjure`.
+
+### Using Go Directly
+
+To build without Make:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+go build -o bin\conjure.exe main.go
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+go build -o bin/conjure main.go
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+go build -o bin/conjure main.go
+```
+
+</OSContent>
+
+## Install
+
+Move the binary to a directory on your PATH.
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+Copy-Item bin\conjure.exe -Destination C:\conjure\conjure.exe
+```
+
+Ensure `C:\conjure` is on your PATH (see [binary install instructions](/docs/install/binary#windows)).
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+sudo mv bin/conjure /usr/local/bin/
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+sudo mv bin/conjure /usr/local/bin/
+```
+
+</OSContent>
+
+Verify the installation:
+
+```bash
+conjure --version
+```
+
+## Cross-Compilation
+
+Build for a different platform using Go environment variables:
+
+```bash
+# Linux x86_64
+GOOS=linux GOARCH=amd64 go build -o conjure-linux-amd64 .
+
+# Linux arm64
+GOOS=linux GOARCH=arm64 go build -o conjure-linux-arm64 .
+
+# macOS Apple Silicon
+GOOS=darwin GOARCH=arm64 go build -o conjure-darwin-arm64 .
+
+# macOS Intel
+GOOS=darwin GOARCH=amd64 go build -o conjure-darwin-amd64 .
+
+# Windows x86_64
+GOOS=windows GOARCH=amd64 go build -o conjure-windows-amd64.exe .
+```
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Getting Started",
+      description: "Set up Conjure and generate your first template.",
+      href: "/docs/getting-started"
+    },
+    {
+      title: "Configuration",
+      description: "Configure Conjure for your environment.",
+      href: "/docs/configuration"
+    },
+    {
+      title: "Download Binaries",
+      description: "Download prebuilt binaries instead.",
+      href: "/download"
+    }
+  ]}
+/>

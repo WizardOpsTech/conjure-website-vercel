@@ -1,0 +1,130 @@
+---
+title: conjure template
+description: Generate a file from an individual template.
+---
+
+The `conjure template` command generates a single output file from a template.
+
+## Synopsis
+
+```bash
+conjure template <template-name> -o <output-path> [flags]
+```
+
+## Arguments
+
+### template-name
+
+The name of the template to use (the directory name under `templates/`).
+
+**Examples:**
+```bash
+conjure template deployment -o deployment.yaml
+conjure template vpc -o main.tf
+conjure template docker-compose -o docker-compose.yaml
+```
+
+For a template located at `templates/deployment/1.0.0/`, use `deployment` as the template name.
+
+## Required Flags
+
+### -o, --output
+
+Path where the generated file will be written.
+
+```bash
+conjure template deployment -o ./k8s/deployment.yaml
+```
+
+**Must be specified.** The command will fail without it.
+
+## Optional Flags
+
+### --version
+
+Specify which version of the template to use.
+
+```bash
+conjure template deployment --version 1.2.0 -o deployment.yaml
+```
+
+**Default:** Uses the highest semantic version available when not specified.
+
+**Examples:**
+```bash
+# Use latest version (default)
+conjure template deployment -o deployment.yaml
+
+# Use specific version
+conjure template deployment --version 2.0.0 -o deployment.yaml
+```
+
+### -v, --var
+
+Set template variables using `key=value` format.
+
+```bash
+conjure template deployment -o deployment.yaml \
+  --var app_name=my-app \
+  --var replicas=3 \
+  --var port=8080
+```
+
+**Can be specified multiple times:**
+```bash
+conjure template deployment -o deployment.yaml \
+  -v app_name=my-app \
+  -v image=nginx:latest \
+  -v port=80
+```
+
+**Type conversion is automatic:**
+```bash
+--var replicas=5        # Converted to int if defined as int
+--var enable_tls=true   # Converted to bool if defined as bool
+```
+
+### -f, --values
+
+Provide variables from a YAML file.
+
+```bash
+conjure template deployment -o deployment.yaml -f production.yaml
+```
+
+**Values file format:**
+```yaml
+app_name: my-api
+replicas: 5
+port: 8080
+image: ghcr.io/myorg/my-api:1.0.0
+```
+
+**Combine with --var to override specific values:**
+```bash
+conjure template deployment -o deployment.yaml \
+  -f production.yaml \
+  --var replicas=10
+```
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Creating Templates",
+      description: "Learn how to create your own templates.",
+      href: "/docs/creating-templates"
+    },
+    {
+      title: "Values Files",
+      description: "Organize variables in YAML files.",
+      href: "/docs/values-files"
+    },
+    {
+      title: "conjure bundle",
+      description: "Generate multiple files with bundles.",
+      href: "/docs/cli-reference/bundle"
+    }
+  ]}
+/>

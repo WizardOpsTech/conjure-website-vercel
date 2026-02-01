@@ -1,0 +1,408 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Cinzel+Decorative:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--brand-color) 60%, transparent);
+}
+
+html {
+  color-scheme: dark;
+  font-family: var(--font-body);
+}
+
+html,
+body {
+  max-width: 100vw;
+  background: var(--gray-0);
+  font-family: var(--font-body);
+  color: var(--gray-4);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.noScroll {
+  overflow: hidden;
+}
+
+html,
+body {
+  /* The total height of the header, including all padding, etc.
+    this is needed to calculate sticky positioning for other elements. */
+  --header-height: 72px;
+  --footer-height: 87px;
+
+  max-width: 100vw;
+
+  /* Brand Colors - Cosmic Theme */
+  --brand-color: #5A3FC0; /* Primary Purple */
+  --brand-purple-light: #A678E2;
+  --brand-teal: #3FE0D0;
+  --brand-teal-light: #89F0D8;
+  --brand-gold: #FFD76B;
+  --brand-gold-light: #FFE399;
+  --brand-brown: #3B2F2F;
+
+  /* Background & Text */
+  --gray-0: #0E0E14; /* Background color - Deep Space */
+  --gray-1: #16161A; /* Blocks */
+  --gray-2: #242428; /* HRs */
+  --gray-3: #4C4C50; /* Unfocused Font, Code Background */
+  --gray-4: #EAEAEA; /* Body Font */
+  --gray-5: #959597;
+  --gray-6: #c3c3c4;
+  --gray-7: #dbdbdc;
+  --gray-8: #eaeaeb;
+  --gray-9: #F6F1E9; /* Header Font */
+  --black: #000;
+  --white: #fff;
+
+  /* Brand Fonts */
+  --font-display: 'Cinzel Decorative', serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --form-border-radius: 6px;
+  --form-box-shadow:
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+    rgba(55, 55, 55, 0.15) 0px 1px 2px 0px;
+
+  --atom-one-blue: #61aeee;
+  --atom-one-green: #98c379;
+  --atom-one-yellow: #e6c07b;
+  --atom-one-purple: #c678dd;
+  --atom-one-red: #e06c75;
+  --atom-one-orange: #d19a66;
+  --atom-one-teal: #56b6c2;
+  --atom-one-gray: #5c6370;
+  --atom-one-white: #abb2bf;
+
+  --callout-note: var(--atom-one-blue);
+  --callout-tip: var(--atom-one-green);
+  --callout-important: var(--atom-one-purple);
+  --callout-warning: var(--atom-one-yellow);
+  --callout-caution: var(--atom-one-red);
+}
+
+/* Cosmic Fantasy Theme (Dark Mode) - Default */
+html,
+html[data-theme="dark"] {
+  --home-bg-gradient: linear-gradient(135deg, #0E0E14 0%, #1a1347 50%, #0E0E14 100%);
+  --home-title-gradient: linear-gradient(135deg, var(--brand-purple-light) 0%, var(--brand-teal) 50%, var(--brand-gold) 100%);
+  --home-title-color: var(--gray-9);
+  --home-tagline-color: var(--gray-4);
+  --home-quote-color: var(--gray-5);
+  --logo-shadow: drop-shadow(0 0 20px rgba(63, 224, 208, 0.3));
+  --docs-page-bg: linear-gradient(135deg, #0E0E14 0%, #1a1347 25%, #0E0E14 50%, #0d1a1a 75%, #0E0E14 100%);
+
+  --theme-toggle-bg: rgba(14, 14, 20, 0.7);
+  --theme-toggle-bg-hover: rgba(14, 14, 20, 0.9);
+  --theme-toggle-border: rgba(90, 63, 192, 0.4);
+  --theme-toggle-text: var(--gray-4);
+  --theme-toggle-shadow: 0 4px 12px rgba(63, 224, 208, 0.15);
+  --theme-toggle-shadow-hover: 0 6px 16px rgba(63, 224, 208, 0.25);
+}
+
+html[data-theme="dark"] .logoDark {
+  opacity: 1 !important;
+}
+
+html[data-theme="dark"] .logoLight {
+  opacity: 0 !important;
+}
+
+/* Storybook Whimsy Theme (Light Mode) */
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --home-bg-gradient: linear-gradient(135deg,
+    #F6F1E9 0%,
+    #FFF8E7 15%,
+    #FFEFC2 35%,
+    #FFF8E7 50%,
+    #F9EDD8 65%,
+    #FFF8E7 85%,
+    #F6F1E9 100%);
+  --home-title-gradient: linear-gradient(135deg, var(--brand-color) 0%, var(--brand-teal) 50%, #D4A574 100%);
+  --home-title-color: var(--brand-brown);
+  --home-tagline-color: var(--brand-brown);
+  --home-quote-color: #5a4a4a;
+  --logo-shadow: drop-shadow(0 0 15px rgba(90, 63, 192, 0.2));
+  --docs-page-bg: linear-gradient(135deg,
+    #F6F1E9 0%,
+    #FFEFC2 20%,
+    #FFF8E7 35%,
+    #F6F1E9 50%,
+    #F9EDD8 65%,
+    #FFEFC2 80%,
+    #F6F1E9 100%);
+
+  /* Light mode grayscale - inverted from dark mode */
+  --gray-0: #F6F1E9; /* Background - Parchment */
+  --gray-1: #EBE6DD; /* Blocks - Light Parchment */
+  --gray-2: #D5D0C7; /* HRs - Beige */
+  --gray-3: #4A4A4A; /* Unfocused Font, Code Background - Dark Gray */
+  --gray-4: #2B2020; /* Body Font - Very Dark Gray */
+  --gray-5: #1A1A1A; /* Medium Dark - Near Black */
+  --gray-6: #0E0E0E; /* Dark - Almost Black */
+  --gray-7: #050505; /* Darker - Nearly Black */
+  --gray-8: #000000; /* Very Dark - True Black */
+  --gray-9: #1A1A1A; /* Header Font - Near Black */
+
+  --theme-toggle-bg: rgba(255, 255, 255, 0.8);
+  --theme-toggle-bg-hover: rgba(255, 255, 255, 0.95);
+  --theme-toggle-border: rgba(90, 63, 192, 0.3);
+  --theme-toggle-text: var(--brand-brown);
+  --theme-toggle-shadow: 0 4px 12px rgba(90, 63, 192, 0.15);
+  --theme-toggle-shadow-hover: 0 6px 16px rgba(90, 63, 192, 0.25);
+
+  /* Light mode hover background - light teal */
+  --hover-bg-light: rgba(63, 224, 208, 0.12);
+}
+
+html[data-theme="light"] .logoDark {
+  opacity: 0 !important;
+}
+
+html[data-theme="light"] .logoLight {
+  opacity: 1 !important;
+}
+
+/* Light mode adjustments for decorative elements */
+html[data-theme="light"] .orb {
+  opacity: 0.15 !important;
+  filter: blur(80px);
+}
+
+html[data-theme="light"] .orb1 {
+  background: var(--brand-color) !important;
+}
+
+html[data-theme="light"] .orb2 {
+  background: var(--brand-teal) !important;
+  opacity: 0.1 !important;
+}
+
+html[data-theme="light"] .orb3 {
+  background: #D4A574 !important;
+  opacity: 0.12 !important;
+}
+
+html[data-theme="light"] .star {
+  opacity: 0.3;
+}
+
+html[data-theme="light"] .star1,
+html[data-theme="light"] .star4 {
+  background: #D4A574 !important;
+}
+
+html[data-theme="light"] .star2,
+html[data-theme="light"] .star5 {
+  background: var(--brand-teal) !important;
+}
+
+html[data-theme="light"] .star3 {
+  background: var(--brand-color) !important;
+}
+
+/* Light mode code blocks and text adjustments */
+html[data-theme="light"] pre code {
+  background: #f5f2f0 !important;
+  color: #3B2F2F !important;
+}
+
+html[data-theme="light"] code {
+  background: #f5f2f0 !important;
+  color: #3B2F2F !important;
+}
+
+/* Ensure headings are visible in light mode */
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] h4,
+html[data-theme="light"] h5,
+html[data-theme="light"] h6 {
+  color: #1A1A1A !important;
+}
+
+/* Ensure all text elements have proper contrast in light mode */
+html[data-theme="light"] p,
+html[data-theme="light"] li,
+html[data-theme="light"] td,
+html[data-theme="light"] th {
+  color: #2B2020 !important;
+}
+
+/* Navigation and interactive elements in light mode */
+html[data-theme="light"] button,
+html[data-theme="light"] .tabButton {
+  color: #1A1A1A !important;
+}
+
+/* Light mode hover states - use light teal instead of dark gray */
+html[data-theme="light"] .tabButton:hover:not(.active) {
+  background: var(--hover-bg-light) !important;
+  color: #1A1A1A !important;
+}
+
+html[data-theme="light"] .linkNode:hover,
+html[data-theme="light"] .folderNode button:hover {
+  background: var(--hover-bg-light) !important;
+  color: #1A1A1A !important;
+}
+
+html[data-theme="light"] a:hover {
+  background: transparent !important;
+}
+
+/* Card and interactive element hover states in light mode */
+html[data-theme="light"] .cardLinks ul li:hover,
+html[data-theme="light"] .genericCard:hover,
+html[data-theme="light"] .infoCard:hover,
+html[data-theme="light"] .terminalCard:hover {
+  background-color: var(--hover-bg-light) !important;
+}
+
+/* Override any dark hover backgrounds in light mode */
+html[data-theme="light"] *:hover {
+  --gray-1: rgba(63, 224, 208, 0.12);
+  --gray-2: rgba(63, 224, 208, 0.18);
+}
+
+/* Links in light mode (exclude footer) */
+html[data-theme="light"] a {
+  color: var(--brand-color);
+}
+
+html[data-theme="light"] a:hover {
+  color: var(--brand-teal);
+}
+
+html[data-theme="light"] footer a,
+html[data-theme="light"] footer a:hover {
+  color: inherit;
+}
+
+/* Navbar adjustments for light mode */
+html[data-theme="light"] nav {
+  background: rgba(246, 241, 233, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom-color: #D5D0C7 !important;
+  box-shadow: 0 2px 8px rgba(90, 63, 192, 0.06) !important;
+}
+
+
+/* This a slightly modified atom-one-dark theme */
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  color: var(--atom-one-white);
+  background: var(--gray-1);
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--atom-one-gray);
+  font-style: italic;
+}
+
+.hljs-doctag,
+.hljs-keyword,
+.hljs-formula {
+  color: var(--atom-one-purple);
+}
+
+.hljs-section,
+.hljs-name,
+.hljs-selector-tag,
+.hljs-deletion,
+.hljs-subst {
+  color: var(--atom-one-red);
+}
+
+.hljs-literal {
+  color: var(--atom-one-teal);
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta-string {
+  color: var(--atom-one-green);
+}
+
+.hljs-built_in,
+.hljs-class .hljs-title {
+  color: var(--atom-one-yellow);
+}
+
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-number {
+  color: var(--atom-one-orange);
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-id,
+.hljs-title {
+  color: var(--atom-one-blue);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+
+.hljs-link {
+  text-decoration: underline;
+}
+
+@media print {
+  /* Invert the lightness in print mode */
+  html,
+  body {
+    --gray-0: #ededf1;
+    --gray-1: #e7e7eb;
+    --gray-2: #d8d8de;
+    --gray-3: #adadb5;
+    --gray-4: #767680;
+    --gray-5: #666669;
+    --gray-6: #383839;
+    --gray-7: #212123;
+    --gray-8: #111113;
+    --gray-9: #08080d;
+    --black: #ffffff;
+    --white: #000000;
+
+    background: white;
+
+    --atom-one-blue: #0e5c99;
+    --atom-one-green: #4e6a24;
+    --atom-one-yellow: #805215;
+    --atom-one-purple: #8b2085;
+    --atom-one-red: #a11b2c;
+    --atom-one-orange: #8b553a;
+    --atom-one-teal: #2b959d;
+    --atom-one-gray: #8f97a3;
+    --atom-one-white: #434958;
+  }
+}

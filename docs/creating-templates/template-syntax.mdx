@@ -1,0 +1,500 @@
+---
+title: Template Syntax
+description: Complete guide to Go template syntax used in Conjure.
+---
+
+Conjure uses Go's template engine, which provides powerful text transformation capabilities. This guide covers all the syntax you need to create dynamic templates.
+
+## Basic Substitution
+
+### Simple Variables
+
+Replace placeholders with variable values:
+
+```yaml
+name: {{.app_name}}
+namespace: {{.namespace}}
+port: {{.port}}
+```
+
+**Input variables:**
+```yaml
+app_name: my-api
+namespace: production
+port: 8080
+```
+
+### Dot Notation
+
+The `.` (dot) refers to the current context, which is your variables object:
+
+```yaml
+{{.variable_name}}
+```
+
+## Conditionals
+
+### Basic If Statement
+
+```yaml
+{{if .enable_monitoring}}
+monitoring:
+  enabled: true
+{{end}}
+```
+
+**When `enable_monitoring: true`:**
+```yaml
+monitoring:
+  enabled: true
+```
+
+**When `enable_monitoring: false`:**
+```yaml
+# Nothing rendered
+```
+
+### If-Else
+
+```yaml
+{{if .enable_tls}}
+protocol: https
+port: 443
+{{else}}
+protocol: http
+port: 80
+{{end}}
+```
+
+### If-Else-If
+
+```yaml
+{{if eq .environment "production"}}
+replicas: 10
+{{else if eq .environment "staging"}}
+replicas: 5
+{{else}}
+replicas: 1
+{{end}}
+```
+
+### Negation
+
+```yaml
+{{if not .enable_debug}}
+logLevel: info
+{{else}}
+logLevel: debug
+{{end}}
+```
+
+## Comparisons
+
+### Equality
+
+```yaml
+{{if eq .service_type "LoadBalancer"}}
+externalTrafficPolicy: Local
+{{end}}
+```
+
+**Multiple values:**
+```yaml
+{{if eq .environment "production" "prod" "prd"}}
+# Matches if environment is any of these values
+{{end}}
+```
+
+### Inequality
+
+```yaml
+{{if ne .environment "development"}}
+# Renders if environment is NOT development
+{{end}}
+```
+
+### Comparison Operators
+
+| Operator | Meaning | Example |
+|----------|---------|---------|
+| `eq` | Equal | `{{if eq .env "prod"}}` |
+| `ne` | Not equal | `{{if ne .env "dev"}}` |
+
+<Important>
+**Numeric Comparisons Not Supported**: While Go templates support numeric comparison operators (`lt`, `le`, `gt`, `ge`), Conjure stores all variables as strings regardless of the `type` field in metadata. This means numeric comparisons will not work as expected. Use string comparisons with `eq` and `ne` instead.
+
+For example, instead of `{{if ge .replicas 5}}`, use categorical variables like `scale_tier` with values `small`, `medium`, `large` and compare with `{{if eq .scale_tier "large"}}`.
+</Important>
+
+## Logical Operators
+
+### And
+
+```yaml
+{{if and .enable_tls .enable_auth}}
+# Renders if both are true
+secureMode: true
+{{end}}
+```
+
+### Or
+
+```yaml
+{{if or .is_production .is_staging}}
+# Renders if either is true
+highAvailability: true
+{{end}}
+```
+
+### Complex Conditions
+
+```yaml
+{{if and (eq .environment "production") (eq .scale_tier "large")}}
+# Production AND large scale
+autoscaling: true
+{{end}}
+```
+
+## Whitespace Control
+
+### Default Behavior
+
+Templates preserve whitespace:
+
+```yaml
+{{if .feature}}
+enabled: true
+{{end}}
+```
+
+**Output with `feature: true`:**
+```yaml
+
+enabled: true
+
+```
+
+Notice the blank lines.
+
+### Remove Whitespace
+
+Use `-` to trim whitespace:
+
+```yaml
+{{- if .feature}}
+enabled: true
+{{- end}}
+```
+
+**Output:**
+```yaml
+enabled: true
+```
+
+### Whitespace Control Positions
+
+**Left trim:**
+```yaml
+{{- .value}}
+```
+
+**Right trim:**
+```yaml
+{{.value -}}
+```
+
+**Both:**
+```yaml
+{{- .value -}}
+```
+
+### Practical Example
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.app_name}}
+{{- if .enable_monitoring}}
+  annotations:
+    prometheus.io/scrape: "true"
+{{- end}}
+spec:
+  selector:
+    app: {{.app_name}}
+```
+
+Without `-`, you'd get blank lines in the output.
+
+## Comments
+
+### Template Comments
+
+Comments that don't appear in output:
+
+```yaml
+{{/* This is a comment */}}
+apiVersion: v1
+kind: Service
+```
+
+**Multi-line comments:**
+```yaml
+{{/*
+This is a multi-line comment
+It won't appear in the output
+*/}}
+```
+
+### YAML Comments
+
+Regular YAML comments appear in output:
+
+```yaml
+# This is a YAML comment - appears in output
+apiVersion: v1
+```
+
+## String Functions
+
+### Print
+
+```yaml
+message: {{print "Hello " .name "!"}}
+```
+
+**Output with `name: World`:**
+```yaml
+message: Hello World!
+```
+
+### Printf (Formatted Print)
+
+```yaml
+version: {{printf "v%s" .version}}
+```
+
+**Output with `version: 1.2.3`:**
+```yaml
+version: v1.2.3
+```
+
+## Advanced Patterns
+
+### Nested Conditions
+
+```yaml
+{{if .enable_database}}
+database:
+  {{if eq .database_type "postgres"}}
+  type: postgresql
+  port: 5432
+  {{else if eq .database_type "mysql"}}
+  type: mysql
+  port: 3306
+  {{else}}
+  type: sqlite
+  {{end}}
+{{end}}
+```
+
+### Multiple Conditions
+
+```yaml
+{{if and (eq .environment "production") (eq .region "us-east-1")}}
+# Specific production region config
+{{else if eq .environment "production"}}
+# General production config
+{{else}}
+# Other environments
+{{end}}
+```
+
+### Dynamic Labels
+
+```yaml
+metadata:
+  labels:
+    app: {{.app_name}}
+    environment: {{.environment}}
+    {{- if .team}}
+    team: {{.team}}
+    {{- end}}
+    {{- if .cost_center}}
+    cost-center: {{.cost_center}}
+    {{- end}}
+```
+
+## Common Patterns
+
+### Environment-Based Configuration
+
+```yaml
+{{if eq .environment "production"}}
+replicas: 10
+resources:
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+{{else if eq .environment "staging"}}
+replicas: 3
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+{{else}}
+replicas: 1
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+{{end}}
+```
+
+### Feature Flags
+
+```yaml
+spec:
+  containers:
+  - name: {{.app_name}}
+    image: {{.image}}
+    {{- if .enable_health_checks}}
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: {{.port}}
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: {{.port}}
+      initialDelaySeconds: 5
+      periodSeconds: 5
+    {{- end}}
+    {{- if .enable_metrics}}
+    env:
+    - name: METRICS_ENABLED
+      value: "true"
+    - name: METRICS_PORT
+      value: "{{.metrics_port}}"
+    {{- end}}
+```
+
+### Service Type Variations
+
+```yaml
+spec:
+  type: {{.service_type}}
+  {{- if eq .service_type "LoadBalancer"}}
+  loadBalancerSourceRanges:
+  - {{.allowed_cidr}}
+  externalTrafficPolicy: Local
+  {{- else if eq .service_type "NodePort"}}
+  sessionAffinity: ClientIP
+  {{- end}}
+```
+
+## Debugging Templates
+
+### Check Variable Values
+
+Add temporary debug output:
+
+```yaml
+{{/* DEBUG: app_name = {{.app_name}} */}}
+{{/* DEBUG: replicas = {{.replicas}} */}}
+```
+
+Generate and check the comments in output.
+
+### Validate Syntax
+
+If your template has syntax errors, you'll see:
+
+```
+Error: failed to parse template
+```
+
+Common issues:
+- Unclosed `{{if}}` (missing `{{end}}`)
+- Typo in function name
+- Missing closing braces `}}`
+
+## Best Practices
+
+### Use Whitespace Control
+
+```yaml
+# Good - clean output
+{{- if .feature}}
+enabled: true
+{{- end}}
+
+# Bad - extra blank lines
+{{if .feature}}
+enabled: true
+{{end}}
+```
+
+### Group Related Conditions
+
+```yaml
+# Good - clear structure
+{{- if .enable_monitoring}}
+annotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9090"
+{{- end}}
+
+# Bad - scattered
+{{- if .enable_monitoring}}
+annotations:
+  prometheus.io/scrape: "true"
+{{- end}}
+{{- if .enable_monitoring}}
+  prometheus.io/port: "9090"
+{{- end}}
+```
+
+### Provide Defaults in Logic
+
+```yaml
+replicas: {{if .replicas}}{{.replicas}}{{else}}3{{end}}
+```
+
+Or better, set defaults in metadata and use:
+```yaml
+replicas: {{.replicas}}
+```
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Creating Templates",
+      description: "Apply this syntax to build complete templates.",
+      href: "/docs/creating-templates"
+    },
+    {
+      title: "Examples",
+      description: "See real-world template examples.",
+      href: "/docs/examples"
+    },
+    {
+      title: "Variables & Types",
+      description: "Learn about variable types and metadata.",
+      href: "/docs/core-concepts/variables-and-types"
+    }
+  ]}
+/>

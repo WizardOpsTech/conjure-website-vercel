@@ -1,0 +1,239 @@
+---
+title: conjure repo index
+description: Generate repository index files for remote template and bundle repositories.
+---
+
+The `conjure repo index` command scans your templates and bundles directories, validates their structure, computes file hashes, and generates index files that can be used to host a remote repository.
+
+## Synopsis
+
+```bash
+conjure repo index --templates <dir> --bundles <dir> --out <dir>
+```
+
+## Purpose
+
+This command is used to create remote repository index files. Remote repositories allow teams to:
+
+- Host templates and bundles on a web server
+- Share templates across multiple projects
+- Version templates independently
+- Enable automatic updates
+
+## Required Flags
+
+At least one of `--templates` or `--bundles` must be specified.
+
+## Optional Flags
+
+### --out, -o
+
+Output directory where the `index.json` file will be written.
+
+```bash
+conjure repo index --templates ./templates --out ./public
+```
+
+**Default:** `.` (current directory)
+
+### --templates
+
+Path to the templates directory to index.
+
+```bash
+conjure repo index --templates ./templates --out ./public
+```
+
+**Expected structure:**
+```
+templates/
+└── <template-name>/
+    └── <version>/
+        ├── conjure.json
+        └── template.tmpl
+```
+
+### --bundles
+
+Path to the bundles directory to index.
+
+```bash
+conjure repo index --bundles ./bundles --out ./public
+```
+
+**Expected structure:**
+```
+bundles/
+└── <bundle-name>/
+    └── <version>/
+        ├── conjure.json
+        └── *.tmpl files
+```
+
+## Examples
+
+### Index Templates Only
+
+```bash
+conjure repo index \
+  --templates ./templates \
+  --out ./public
+```
+
+**Output:**
+```
+Indexing repository...
+
+Validating templates directory: ./templates
+
+Index Summary:
+
+Templates:
+  ✓ deployment (2 versions: 1.0.0, 2.0.0)
+  ✓ service (1 version: 1.0.0)
+
+Index file created:
+  /path/to/public/index.json
+  Size: 2048 bytes
+  Resources: 2 (2 templates, 0 bundles)
+  Versions: 3
+
+✓ Repository index created successfully
+```
+
+### Index Bundles Only
+
+```bash
+conjure repo index \
+  --bundles ./bundles \
+  --out ./public
+```
+
+### Index Both Templates and Bundles
+
+```bash
+conjure repo index \
+  --templates ./templates \
+  --bundles ./bundles \
+  --out ./public
+```
+
+**Output:**
+```
+Indexing repository...
+
+Validating templates directory: ./templates
+Validating bundles directory: ./bundles
+
+Index Summary:
+
+Templates:
+  ✓ deployment (2 versions: 1.0.0, 2.0.0)
+  ✓ service (1 version: 1.0.0)
+
+Bundles:
+  ✓ web-app (2 versions: 1.0.0, 2.0.0)
+  ✓ database (1 version: 1.0.0)
+
+Index file created:
+  /path/to/public/index.json
+  Size: 4096 bytes
+  Resources: 4 (2 templates, 2 bundles)
+  Versions: 6
+
+✓ Repository index created successfully
+```
+
+### Custom Output Directory
+
+```bash
+conjure repo index \
+  --templates ./my-templates \
+  --bundles ./my-bundles \
+  --out ./dist/repo
+```
+
+## Generated Index File
+
+The command creates an `index.json` file with metadata about all templates and bundles:
+
+```json
+{
+  "schema_version": "v1",
+  "last_updated": "2026-01-17T10:30:00Z",
+  "templates": [
+    {
+      "name": "deployment",
+      "type": "yaml",
+      "template_description": "Kubernetes Deployment manifest",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "files": [
+            {
+              "name": "conjure.json",
+              "path": "deployment/1.0.0/conjure.json",
+              "size": 512,
+              "sha256": "abc123..."
+            },
+            {
+              "name": "template.tmpl",
+              "path": "deployment/1.0.0/template.tmpl",
+              "size": 1024,
+              "sha256": "def456..."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "name": "web-app",
+      "type": "kubernetes",
+      "description": "Complete web application deployment",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "files": [
+            {
+              "name": "conjure.json",
+              "path": "web-app/1.0.0/conjure.json",
+              "size": 1024,
+              "sha256": "ghi789..."
+            },
+            {
+              "name": "deployment.yaml.tmpl",
+              "path": "web-app/1.0.0/deployment.yaml.tmpl",
+              "size": 512,
+              "sha256": "jkl012..."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Repository Structure",
+      description: "Learn the expected directory structure for indexing.",
+      href: "/docs/core-concepts/repository-structure"
+    },
+    {
+      title: "Configuration",
+      description: "Configure remote repositories in Conjure.",
+      href: "/docs/configuration"
+    },
+    {
+      title: "conjure list",
+      description: "List templates from remote repositories.",
+      href: "/docs/cli-reference/list"
+    }
+  ]}
+/>

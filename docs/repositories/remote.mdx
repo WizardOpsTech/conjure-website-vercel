@@ -1,0 +1,365 @@
+---
+title: Remote Repositories
+description: Understanding remote repository structure, index.json format, and hosting options for Conjure.
+---
+
+Remote repositories enable centralized distribution of templates and bundles over HTTP or HTTPS. They provide teams with a single source of truth for templates and bundles.
+
+## Overview
+
+Remote repositories are web servers hosting templates and bundles with an index-based discovery system. Unlike local repositories that use filesystem scanning, remote repositories rely on an `index.json` file for resource discovery.
+
+## Example Remote Repository Structure
+
+[An example remote repository can be viewed being hosted on GitHub](https://github.com/wizardopstechTech/conjure-get-started). The directory structure is the same as a local repository, but with the additional requirement of an `index.json` file.
+## Index Structure
+
+The `index.json` file is the catalog of all available templates and bundles in a remote repository.
+
+### Complete Index Format
+
+```json
+{
+  "schema_version": "v1",
+  "last_updated": "2026-01-21T23:35:23.8639667-05:00",
+  "templates": [
+    {
+      "name": "k8s-deployment",
+      "type": "kubernetes",
+      "description": "Kubernetes Deployment manifest",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "files": [
+            {
+              "name": "conjure.json",
+              "path": "templates/k8s-deployment/1.0.0/conjure.json",
+              "size": 2022,
+              "sha256": "9617f2bb2f1bf6449aebb3af48cf1652bc9b12b2d8f61ae78a8e0b72cdd35f16"
+            },
+            {
+              "name": "deployment.yaml.tmpl",
+              "path": "templates/k8s-deployment/1.0.0/deployment.yaml.tmpl",
+              "size": 1419,
+              "sha256": "dad3c66742ed08b2014dc5a417a4c02950eb3175b4cb6e3653bc278746faf301"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "name": "k8s-web-app",
+      "type": "kubernetes",
+      "description": "Complete Kubernetes web application stack",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "files": [
+            {
+              "name": "conjure.json",
+              "path": "bundles/k8s-web-app/1.0.0/conjure.json",
+              "size": 3145,
+              "sha256": "8a2f3c1e4d5b6a7c8e9f0d1c2b3a4e5f6d7c8e9f0a1b2c3d4e5f6a7b8c9d0e1f"
+            },
+            {
+              "name": "deployment.yaml.tmpl",
+              "path": "bundles/k8s-web-app/1.0.0/deployment.yaml.tmpl",
+              "size": 1523,
+              "sha256": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b"
+            },
+            {
+              "name": "service.yaml.tmpl",
+              "path": "bundles/k8s-web-app/1.0.0/service.yaml.tmpl",
+              "size": 845,
+              "sha256": "2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Root Fields
+
+**schema_version** (required):
+- Currently only "v1" is supported
+
+**last_updated** (optional):
+- ISO 8601 timestamp of last index update
+
+**templates** (required):
+- Array of template entries
+- Can be empty array if no templates
+
+**bundles** (optional):
+- Array of bundle entries
+- Can be omitted or empty array if no bundles
+
+### Template/Bundle Entry Fields
+
+**name** (required):
+- Template or bundle identifier
+- Must contain only alphanumeric characters, hyphens, and underscores
+- Examples: `k8s-deployment`, `terraform_vpc`
+
+**type** (required):
+- Classification type for filtering
+- Freeform string (no predefined values)
+- Examples: `kubernetes`, `terraform`, `docker`, `config`
+
+**description** (required):
+- Human-readable description
+- Displayed in listings
+
+**versions** (required):
+- Array of version entries
+- Must contain at least one version
+
+### Version Entry Fields
+
+**version** (required):
+- Semantic version string
+- Format: `major.minor.patch`
+- No "v" prefix
+- Examples: `1.0.0`, `2.1.5`
+
+**files** (required):
+- Array of file entries
+- Must include `conjure.json` and at least one template file
+
+### File Entry Fields
+
+**name** (required):
+- Filename only (no path)
+- Examples: `conjure.json`, `deployment.yaml.tmpl`
+
+**path** (required):
+- Relative path from repository root
+- Used to construct download URL
+- Examples: `templates/k8s-deployment/1.0.0/conjure.json`
+
+**size** (required):
+- File size in bytes
+- Must be positive integer
+- Maximum: 100 MB (104,857,600 bytes)
+
+**sha256** (required):
+- SHA256 hash of file contents
+- 64 hexadecimal characters
+- Used for integrity verification after download
+
+## URL Structure
+
+Remote repositories use a base URL combined with paths from the index to construct download URLs.
+
+### Base URL
+
+The base URL points to the repository root:
+
+```yaml
+templates_remote_url: https://templates.example.com/conjure-repo
+```
+
+**Requirements:**
+- Must use `http://` or `https://` scheme
+- Must include hostname
+- Can include port number
+- Can include path components
+- Trailing slashes are automatically removed
+
+**Valid examples:**
+```
+https://templates.example.com
+https://templates.example.com:8443
+https://templates.example.com/conjure
+http://localhost:8080
+```
+
+### Index URL
+
+The index URL is constructed by appending `/index.json` to the base URL:
+
+```
+Base URL: https://templates.example.com/conjure
+Index URL: https://templates.example.com/conjure/index.json
+```
+
+### File URLs
+
+File URLs are constructed by appending the file's `path` from index.json:
+
+```
+Base URL: https://templates.example.com/conjure
+File path: templates/k8s-deployment/1.0.0/conjure.json
+File URL: https://templates.example.com/conjure/templates/k8s-deployment/1.0.0/conjure.json
+```
+
+## Generating Index Files
+
+Create an index.json file for your remote repository using the `repo index` command.
+
+### Basic Usage
+
+```bash
+conjure repo index \
+  --templates ./templates \
+  --bundles ./bundles \
+  --out .
+```
+
+This generates `index.json` in the current directory.
+
+## Hosting Remote Repositories
+
+Remote repositories can be hosted on any web server capable of serving static files.
+
+### Nginx Example
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name templates.example.com;
+
+    ssl_certificate /etc/ssl/certs/templates.example.com.crt;
+    ssl_certificate_key /etc/ssl/private/templates.example.com.key;
+
+    root /var/www/conjure-repo;
+
+    location / {
+        # Enable CORS if needed
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods "GET, OPTIONS";
+
+        # Prevent directory listing (index.json provides discovery)
+        autoindex off;
+
+        # Cache control
+        add_header Cache-Control "public, max-age=300";
+    }
+
+    location /index.json {
+        # Shorter cache for index file
+        add_header Cache-Control "public, max-age=60";
+    }
+}
+```
+
+### Apache Example
+
+```apache
+<VirtualHost *:443>
+    ServerName templates.example.com
+
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/templates.example.com.crt
+    SSLCertificateKeyFile /etc/ssl/private/templates.example.com.key
+
+    DocumentRoot /var/www/conjure-repo
+
+    <Directory /var/www/conjure-repo>
+        Options -Indexes
+        AllowOverride None
+        Require all granted
+
+        # Enable CORS if needed
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, OPTIONS"
+
+        # Cache control
+        Header set Cache-Control "public, max-age=300"
+    </Directory>
+
+    <Files "index.json">
+        Header set Cache-Control "public, max-age=60"
+    </Files>
+</VirtualHost>
+```
+
+### GitHub Raw URLs
+
+GitHub repositories can serve as remote repositories using raw content URLs:
+
+```yaml
+templates_remote_url: https://raw.githubusercontent.com/owner/repo/branch
+```
+
+**Example:**
+```yaml
+templates_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+```
+
+**Requirements:**
+- Repository must be public
+- Must contain `index.json` at root
+
+## Troubleshooting Remote Repositories
+
+### Index Not Found
+
+```
+Error: failed to fetch index: HTTP 404
+```
+
+**Solutions:**
+- Verify `index.json` exists at base URL + `/index.json`
+- Check web server configuration
+- Test URL in browser: `https://templates.example.com/index.json`
+
+### SHA256 Mismatch
+
+```
+Error: SHA256 mismatch for templates/deployment/1.0.0/conjure.json
+```
+
+**Solutions:**
+- Regenerate index file with current files
+- Ensure files haven't been modified after index generation
+- Check for corruption during upload to server
+
+### TLS Certificate Errors
+
+```
+Error: x509: certificate signed by unknown authority
+```
+
+**Solutions:**
+- Use certificates from trusted CA
+- Install custom CA certificate in system trust store
+- For development, use HTTP (localhost only)
+
+### Network Timeout
+
+```
+Error: failed to fetch index: context deadline exceeded
+```
+
+**Solutions:**
+- Check network connectivity
+- Verify server is reachable
+- Check firewall rules
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Security",
+      description: "Learn about Conjure's security features for remote repositories.",
+      href: "/docs/security"
+    },
+    {
+      title: "Local Repositories",
+      description: "Understanding local repository structure and organization.",
+      href: "/docs/repositories/local"
+    },
+    {
+      title: "Configuration",
+      description: "Complete configuration reference for sources.",
+      href: "/docs/configuration"
+    }
+  ]}
+/>

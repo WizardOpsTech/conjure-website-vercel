@@ -1,0 +1,479 @@
+---
+title: Kubernetes Web Application
+description: Deploy a complete web application to Kubernetes using the k8s-web-app bundle.
+---
+
+This example demonstrates how to deploy a complete web application to Kubernetes using Conjure's k8s-web-app bundle from the [conjure-get-started](https://github.com/wizardopstechTech/conjure-get-started) repository. The bundle generates Deployment, Service, and Ingress manifests configured for your application.
+
+## Overview
+
+The k8s-web-app bundle provides:
+- **Deployment** - Manages pod replicas with resource limits and health checks
+- **Service** - Exposes the application within the cluster
+- **Ingress** - Configures external access with optional TLS
+
+## Prerequisites
+
+- Kubernetes cluster (local or cloud)
+- kubectl configured to access your cluster
+- Conjure installed
+
+## Configuration
+
+### Step 1: Configure Remote Repository
+
+Create `.conjure.yaml` in your project directory:
+
+```yaml
+bundles_source: remote
+bundles_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+templates_source: remote
+templates_remote_url: https://raw.githubusercontent.com/WizardOpsTech/conjure-get-started/master
+```
+
+<Note>
+Using the remote repository means you don't need to maintain bundle files locally. Conjure will download and cache them automatically.
+</Note>
+
+### Step 2: Verify Bundle Availability
+
+List available bundles from the remote repository:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+conjure list bundles --config .conjure.yaml
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure list bundles --config .conjure.yaml
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure list bundles --config .conjure.yaml
+```
+
+</OSContent>
+
+You should see the k8s-web-app bundle listed:
+
+```
+Available Bundles:
+
+  k8s-web-app
+    Description: Complete Kubernetes web application with Deployment, Service, and Ingress
+    Type: kubernetes
+    Latest: 1.0.0
+```
+
+## Generate Templates for Different Environments
+
+### Step 1: Development Environment
+
+Create a values file for rapid development iteration.
+
+Create `values-dev.yaml`:
+
+```yaml
+# Development configuration
+app_name: myapp
+namespace: dev
+image: myapp:dev
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 1
+    container_port: 8080
+    cpu_request: 50m
+    cpu_limit: 200m
+    memory_request: 64Mi
+    memory_limit: 256Mi
+
+  service.yaml.tmpl:
+    service_type: ClusterIP
+    service_port: 8080
+    cotnainer_port: 8080
+
+  ingress.yaml.tmpl:
+    hostname: myapp.dev.local
+    enable_tls: false
+    tls_secret_name: myapp-staging-tls 
+```
+
+Generate and deploy:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+# Generate manifests
+conjure bundle k8s-web-app `
+  --config .conjure.yaml `
+  -o .\manifests `
+  -f values-dev.yaml `
+
+# Create namespace if it doesn't exist
+kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy to Kubernetes
+kubectl apply -f .\manifests\ --namespace=dev
+
+# Verify deployment
+kubectl get all --namespace=dev
+kubectl rollout status deployment/myapp --namespace=dev
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Generate manifests
+conjure bundle k8s-web-app \
+  --config .conjure.yaml \
+  -o ./manifests \
+  -f values-dev.yaml
+
+# Create namespace if it doesn't exist
+kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy to Kubernetes
+kubectl apply -f ./manifests/ --namespace=dev
+
+# Verify deployment
+kubectl get all --namespace=dev
+kubectl rollout status deployment/myapp --namespace=dev
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Generate manifests
+conjure bundle k8s-web-app \
+  --config .conjure.yaml \
+  -o ./manifests \
+  -f values-dev.yaml
+
+# Create namespace if it doesn't exist
+kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy to Kubernetes
+kubectl apply -f ./manifests/ --namespace=dev
+
+# Verify deployment
+kubectl get all --namespace=dev
+kubectl rollout status deployment/myapp --namespace=dev
+```
+
+</OSContent>
+
+### Create Production Deployment
+
+Create a production-ready configuration with high availability and resource guarantees.
+
+Create `values-production.yaml`:
+
+```yaml
+# Production configuration
+app_name: myapp
+namespace: production
+image: ghcr.io/myorg/myapp:1.0.0
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 10
+    container_port: 8080
+    cpu_request: 500m
+    cpu_limit: 2000m
+    memory_request: 1Gi
+    memory_limit: 4Gi
+
+  service.yaml.tmpl:
+    service_type: LoadBalancer
+    service_port: 80
+    container_port: 8080
+
+  ingress.yaml.tmpl:
+    hostname: myapp.example.com
+    enable_tls: true
+    tls_secret_name: myapp-production-tls
+```
+
+Generate and deploy:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+# Generate manifests
+conjure bundle k8s-web-app `
+  --config .conjure.yaml `
+  -o .\manifests `
+  -f values-production.yaml `
+
+# Review manifests before deploying
+Get-Content .\manifests\*.yaml
+
+# Create namespace
+kubectl create namespace production --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy to Kubernetes
+kubectl apply -f .\manifests\ --namespace=production
+
+# Monitor rollout
+kubectl rollout status deployment/myapp --namespace=production --timeout=10m
+
+# Verify service
+kubectl get service myapp --namespace=production
+kubectl get ingress myapp --namespace=production
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Generate manifests
+conjure bundle k8s-web-app \
+  --config .conjure.yaml \
+  -o ./manifests \
+  -f values-production.yaml
+
+# Review manifests before deploying
+cat ./manifests/*.yaml
+
+# Create namespace
+kubectl create namespace production --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy to Kubernetes
+kubectl apply -f ./manifests/ --namespace=production
+
+# Monitor rollout
+kubectl rollout status deployment/myapp --namespace=production --timeout=10m
+
+# Verify service
+kubectl get service myapp --namespace=production
+kubectl get ingress myapp --namespace=production
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Generate manifests
+conjure bundle k8s-web-app \
+  --config .conjure.yaml \
+  -o ./manifests \
+  -f values-production.yaml
+
+# Review manifests before deploying
+cat ./manifests/*.yaml
+
+# Create namespace
+kubectl create namespace production --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy to Kubernetes
+kubectl apply -f ./manifests/ --namespace=production
+
+# Monitor rollout
+kubectl rollout status deployment/myapp --namespace=production --timeout=10m
+
+# Verify service
+kubectl get service myapp --namespace=production
+kubectl get ingress myapp --namespace=production
+```
+
+</OSContent>
+
+### Multi-Environment Deployment
+
+Manage multiple environments using different values files.
+
+**Project structure:**
+
+```
+my-app/
+├── .conjure.yaml
+└── environments/
+    ├── dev.yaml
+    ├── staging.yaml
+    └── production.yaml
+```
+
+## Customization
+
+### Override Individual Values
+
+Override specific values using `--var` flags:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+conjure bundle k8s-web-app `
+  --config .conjure.yaml `
+  -o .\manifests `
+  -f values-production.yaml `
+  --var "replicas=15" `
+  --var "image=ghcr.io/myorg/myapp:1.1.0" `
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+conjure bundle k8s-web-app \
+  --config .conjure.yaml \
+  -o ./manifests \
+  -f values-production.yaml \
+  --var "replicas=15" \
+  --var "image=ghcr.io/myorg/myapp:1.1.0" \
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+conjure bundle k8s-web-app \
+  --config .conjure.yaml \
+  -o ./manifests \
+  -f values-production.yaml \
+  --var "replicas=15" \
+  --var "image=ghcr.io/myorg/myapp:1.1.0" \
+```
+
+</OSContent>
+
+### Template-Specific Overrides
+
+`template_overirdes:` is used to define specific values for specific templates in a bundle. Anything in a values file outside of `tempaltes_values:` is considered a shared value common to all templates in a bundle. 
+Use `template_overrides` in values files to configure individual templates:
+
+```yaml
+app_name: myapp
+namespace: production
+image: myapp:1.0.0
+
+template_overrides:
+  deployment.yaml.tmpl:
+    replicas: 5
+    container_port: 3000
+    cpu_limit: 1000m
+
+  service.yaml.tmpl:
+    service_type: LoadBalancer
+    service_port: 443
+    container_porT: 8081
+
+  ingress.yaml.tmpl:
+    hostname: myapp.example.com
+    enable_tls: true
+    tls_secret_name: myapp-tls
+```
+
+## Updating Deployments
+
+### Rolling Updates
+
+Update the image version and redeploy:
+
+<OSTabs />
+
+<OSContent os="windows">
+
+```powershell
+# Update image in values file or use --var
+conjure bundle k8s-web-app `
+  --config .conjure.yaml `
+  -o .\manifests `
+  -f values-production.yaml `
+  --var "image=ghcr.io/myorg/myapp:1.1.0" `
+
+# Apply changes
+kubectl apply -f .\manifests\ --namespace=production
+
+# Watch rollout
+kubectl rollout status deployment/myapp --namespace=production
+```
+
+</OSContent>
+
+<OSContent os="macos">
+
+```bash
+# Update image in values file or use --var
+conjure bundle k8s-web-app \
+  --config .conjure.yaml \
+  -o ./manifests \
+  -f values-production.yaml \
+  --var "image=ghcr.io/myorg/myapp:1.1.0" \
+
+# Apply changes
+kubectl apply -f ./manifests/ --namespace=production
+
+# Watch rollout
+kubectl rollout status deployment/myapp --namespace=production
+```
+
+</OSContent>
+
+<OSContent os="linux">
+
+```bash
+# Update image in values file or use --var
+conjure bundle k8s-web-app \
+  --config .conjure.yaml \
+  -o ./manifests \
+  -f values-production.yaml \
+  --var "image=ghcr.io/myorg/myapp:1.1.0" \
+
+# Apply changes
+kubectl apply -f ./manifests/ --namespace=production
+
+# Watch rollout
+kubectl rollout status deployment/myapp --namespace=production
+```
+
+</OSContent>
+
+## Troubleshooting
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "CI/CD with GitHub Actions",
+      description: "Automate deployments with GitHub Actions.",
+      href: "/docs/examples/cicd-github-actions"
+    },
+    {
+      title: "Creating Bundles",
+      description: "Create your own custom bundles.",
+      href: "/docs/creating-bundles"
+    },
+    {
+      title: "Variables and Precedence",
+      description: "Understand variable precedence and values files.",
+      href: "/docs/getting-started/variables-and-precedence"
+    }
+  ]}
+/>

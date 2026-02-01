@@ -1,0 +1,341 @@
+---
+title: Variables & Types
+description: Understanding variable types, requirements, defaults, and precedence in Conjure.
+---
+
+Variables are the heart of Conjure's flexibility. They allow you to customize templates and bundles for different environments, applications, and use cases.
+
+## Metadata Structure
+
+All template and bundle metadata is defined in a `conjure.json` file located in the versioned directory.
+
+**For templates** (`templates/<name>/<version>/conjure.json`):
+```json
+{
+  "schema_version": "v1",
+  "template_name": "k8s-deployment",
+  "template_type": "kubernetes",
+  "template_description": "Kubernetes deployment manifest",
+  "variables": []
+}
+```
+
+**For bundles** (`bundles/<name>/<version>/conjure.json`):
+```json
+{
+  "schema_version": "v1",
+  "bundle_type": "kubernetes",
+  "bundle_name": "web-app",
+  "bundle_description": "Complete web application deployment",
+  "shared_variables": [],
+  "template_variables": {}
+}
+```
+
+<Important>
+All fields shown above are required. Templates require `schema_version`, `template_name`, `template_type`, and `template_description`. Bundles require `schema_version`, `bundle_name`, `bundle_type`, and `bundle_description`. Currently only `schema_version` "v1" is supported. The `variables`, `shared_variables`, and `template_variables` fields are optional and can be empty.
+</Important>
+
+## Defining Variables
+
+Every variable definition requires three fields:
+
+1. **name** - The variable identifier used in templates
+2. **description** - Explains the variable's purpose to users
+3. **type** - Must be "string", "int", or "bool"
+
+The **default** field is optional. It controls whether the user must provide a value:
+
+- **With a non-empty default** - The variable has a fallback value. The user can override it, but does not have to.
+- **With an empty or missing default** - The user must provide a value. Conjure will error in non-interactive mode or prompt in interactive mode if no value is given.
+
+```json
+[
+  {
+    "name": "app_name",
+    "description": "Application name",
+    "type": "string",
+    "default": ""
+  },
+  {
+    "name": "replicas",
+    "description": "Number of pod replicas to run",
+    "type": "int",
+    "default": "3"
+  }
+]
+```
+
+In the example above, `app_name` must be provided by the user since it has no meaningful default. `replicas` defaults to `"3"` if the user does not provide a value.
+
+<Note>
+It is recommended to always include the `default` field explicitly for clarity, even when setting it to an empty string.
+</Note>
+
+## Variable Types
+
+Conjure supports three variable types:
+
+### string
+
+Text values of any length.
+
+```json
+{
+  "name": "app_name",
+  "description": "Application name",
+  "type": "string",
+  "default": ""
+}
+```
+
+**Usage in templates:**
+```yaml
+name: {{.app_name}}
+image: {{.container_image}}
+environment: {{.environment}}
+```
+
+### int
+
+Integer numbers (whole numbers, no decimals).
+
+```json
+{
+  "name": "replicas",
+  "description": "Number of pod replicas",
+  "type": "int",
+  "default": "3"
+}
+```
+
+<Important>
+Default values are always strings in JSON, even for integers. Conjure converts them to the appropriate type during validation.
+</Important>
+
+**Usage in templates:**
+```yaml
+replicas: {{.replicas}}
+port: {{.port}}
+maxConnections: {{.max_connections}}
+```
+
+### bool
+
+Boolean values (true or false).
+
+```json
+{
+  "name": "enable_monitoring",
+  "description": "Enable monitoring stack",
+  "type": "bool",
+  "default": "true"
+}
+```
+
+**Usage in templates:**
+```yaml
+{{if .enable_monitoring}}
+monitoring:
+  enabled: true
+{{end}}
+```
+
+## Variable Precedence
+
+When the same variable is defined in multiple places, Conjure uses this precedence order (highest to lowest):
+
+### 1. CLI Flags (Highest Priority)
+
+```bash
+conjure template k8s-deployment -o deployment.yaml --var replicas=5
+```
+
+CLI flags override everything else.
+
+### 2. Values File
+
+```bash
+conjure template k8s-deployment -o deployment.yaml -f production.yaml
+```
+
+Values from the YAML file override defaults.
+
+### 3. Template Defaults (Lowest Priority)
+
+Defaults defined in the template metadata:
+
+```json
+{
+  "name": "replicas",
+  "description": "Number of pod replicas",
+  "type": "int",
+  "default": "3"
+}
+```
+
+<Note>
+Environment variables work for configuration settings (like `CONJURE_TEMPLATES_SOURCE`) but not for template variable values.
+</Note>
+
+### Example Precedence
+
+Given this variable in the template metadata:
+```json
+{
+  "name": "replicas",
+  "description": "Number of pod replicas",
+  "type": "int",
+  "default": "3"
+}
+```
+
+And this values file (`values.yaml`):
+```yaml
+replicas: 5
+```
+
+And this command:
+```bash
+conjure template k8s-deployment -o deployment.yaml \
+  -f values.yaml \
+  --var replicas=10
+```
+
+**Result:** `replicas = 10` (CLI flag wins)
+
+If you remove the `--var`:
+```bash
+conjure template k8s-deployment -o deployment.yaml -f values.yaml
+```
+
+**Result:** `replicas = 5` (values file wins)
+
+If you remove both:
+```bash
+conjure template k8s-deployment -o deployment.yaml
+```
+
+**Result:** `replicas = 3` (default wins)
+
+## Variable Naming Conventions
+
+### Best Practices
+
+**Use snake_case:**
+```json
+{
+  "name": "app_name"
+}
+```
+
+Avoid `camelCase` or `kebab-case` for variable names.
+
+**Be descriptive:**
+```json
+{
+  "name": "cpu_limit"
+}
+```
+
+Avoid overly short or vague names like `cpu` or `c`.
+
+**Group related variables with prefixes:**
+```json
+{
+  "name": "db_host",
+  "description": "Database hostname",
+  "type": "string",
+  "default": ""
+},
+{
+  "name": "db_port",
+  "description": "Database port",
+  "type": "int",
+  "default": "5432"
+},
+{
+  "name": "db_name",
+  "description": "Database name",
+  "type": "string",
+  "default": ""
+}
+```
+
+## Variable Descriptions
+
+Always provide clear, helpful descriptions. Descriptions are shown to users in interactive mode and help them understand what value to provide.
+
+### Include Examples in Descriptions
+
+```json
+{
+  "name": "cpu_limit",
+  "description": "CPU limit (e.g., 100m, 500m, 1000m)",
+  "type": "string",
+  "default": "500m"
+}
+```
+
+### Explain Expected Format
+
+```json
+{
+  "name": "image",
+  "description": "Container image in format: registry/org/name:tag",
+  "type": "string",
+  "default": ""
+}
+```
+
+## Type Conversion
+
+Conjure automatically converts values based on the variable type:
+
+### String to Int
+
+```bash
+--var port=8080
+```
+
+If `port` is defined as `"type": "int"`, Conjure converts `"8080"` to `8080`.
+
+### String to Bool
+
+```bash
+--var enable_tls=true
+```
+
+If `enable_tls` is defined as `"type": "bool"`, Conjure converts `"true"` to boolean `true`.
+
+### Values Files
+
+In YAML values files, types are preserved:
+
+```yaml
+replicas: 5              # int
+app_name: my-app         # string
+enable_tls: true         # bool
+```
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Repository Structure",
+      description: "How to organize your templates and bundles.",
+      href: "/docs/core-concepts/repository-structure"
+    },
+    {
+      title: "Values Files",
+      description: "Learn how to organize variables in YAML files.",
+      href: "/docs/values-files"
+    },
+    {
+      title: "Creating Templates",
+      description: "Use variables in your template files.",
+      href: "/docs/creating-templates"
+    }
+  ]}
+/>

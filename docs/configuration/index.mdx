@@ -1,0 +1,79 @@
+---
+title: Configuration Reference
+description: Complete reference for all Conjure configuration options.
+---
+
+Conjure uses a YAML configuration file to define where templates and bundles are located.
+
+## Configuration File Location
+
+Conjure searches for configuration in this order:
+
+1. **`--config` flag** - Explicit path passed on the command line
+2. **`~/.conjure.yaml`** - Home directory
+
+If no `--config` flag is provided, Conjure looks for `.conjure.yaml` in your home directory.
+
+## Configuration Options
+
+| Field | Required | Default | Valid Values | Description |
+|-------|----------|---------|--------------|-------------|
+| `templates_source` | No | `local` (or `both` if `templates_remote_url` is set) | `local`, `remote`, `both` | Where to source templates from. |
+| `bundles_source` | No | `local` (or `both` if `bundles_remote_url` is set) | `local`, `remote`, `both` | Where to source bundles from. |
+| `templates_local_dir` | When source is `local` or `both` | None | Absolute path | Parent directory containing the `templates/` subdirectory. |
+| `bundles_local_dir` | When source is `local` or `both` | None | Absolute path | Parent directory containing the `bundles/` subdirectory. |
+| `templates_remote_url` | When source is `remote` or `both` | None | `http://` or `https://` URL | Base URL of the remote templates repository. |
+| `bundles_remote_url` | When source is `remote` or `both` | None | `http://` or `https://` URL | Base URL of the remote bundles repository. |
+| `templates_priority` | No | `local-first` | `local-first`, `remote-first` | Which source to check first when source is `both`. |
+| `bundles_priority` | No | `local-first` | `local-first`, `remote-first` | Which source to check first when source is `both`. |
+| `cache_dir` | No | `.conjure` (relative to working directory) | Directory path | Cache directory for remote resources. Supports `~/` expansion. |
+
+<Important>
+The `templates_local_dir` and `bundles_local_dir` paths must point to the **parent directory** that contains the `templates/` and `bundles/` subdirectories. Conjure appends `templates/` and `bundles/` to the configured path internally. Use fully qualified absolute paths. Conjure does not expand the `~` shorthand in local directory paths (only `cache_dir` supports tilde expansion).
+</Important>
+
+## Environment Variables
+
+Every configuration option has a corresponding environment variable with the `CONJURE_` prefix. Environment variables override values from the configuration file.
+
+| Config Field | Environment Variable |
+|---|---|
+| `templates_source` | `CONJURE_TEMPLATES_SOURCE` |
+| `bundles_source` | `CONJURE_BUNDLES_SOURCE` |
+| `templates_local_dir` | `CONJURE_TEMPLATES_LOCAL_DIR` |
+| `bundles_local_dir` | `CONJURE_BUNDLES_LOCAL_DIR` |
+| `templates_remote_url` | `CONJURE_TEMPLATES_REMOTE_URL` |
+| `bundles_remote_url` | `CONJURE_BUNDLES_REMOTE_URL` |
+| `templates_priority` | `CONJURE_TEMPLATES_PRIORITY` |
+| `bundles_priority` | `CONJURE_BUNDLES_PRIORITY` |
+| `cache_dir` | `CONJURE_CACHE_DIR` |
+
+## Precedence
+
+When the same setting is defined in multiple places, Conjure uses this order (highest to lowest):
+
+1. **`--config` flag** - Config file specified on the command line
+2. **Environment variables** - `CONJURE_*` variables
+3. **Configuration file** - `~/.conjure.yaml`
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Repository Structure",
+      description: "Learn how to organize your templates and bundles.",
+      href: "/docs/core-concepts/repository-structure"
+    },
+    {
+      title: "Getting Started",
+      description: "Set up your first Conjure workspace.",
+      href: "/docs/getting-started"
+    },
+    {
+      title: "CLI Reference",
+      description: "Complete command reference.",
+      href: "/docs/cli-reference"
+    }
+  ]}
+/>
