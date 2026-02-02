@@ -40,7 +40,7 @@ To run a template in interactive mode, simply omit the variables from the comman
 <OSContent os="windows">
 
 ```powershell
-conjure template hello-world -o greeting.txt
+conjure template greeting -o greeting.txt
 ```
 
 </OSContent>
@@ -48,7 +48,7 @@ conjure template hello-world -o greeting.txt
 <OSContent os="macos">
 
 ```bash
-conjure template hello-world -o greeting.txt
+conjure template greeting -o greeting.txt
 ```
 
 </OSContent>
@@ -56,7 +56,7 @@ conjure template hello-world -o greeting.txt
 <OSContent os="linux">
 
 ```bash
-conjure template hello-world -o greeting.txt
+conjure template greeting -o greeting.txt
 ```
 
 </OSContent>
@@ -66,7 +66,7 @@ Conjure will detect that no variables were provided and automatically prompt you
 ```
 ? Enter value for 'name': DevOps Engineer
 ? Enter value for 'team': Platform Engineering
-✓ Generated greeting.txt from hello-world template
+✓ Generated greeting.txt from greeting template
 ```
 
 ## How Interactive Prompts Work
