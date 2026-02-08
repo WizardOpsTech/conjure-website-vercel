@@ -1,0 +1,31 @@
+.node {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid;
+  border-radius: 0.5rem;
+}
+
+.nodeSmall {
+  padding: 0.5rem 0.75rem;
+}
+
+.icon {
+  opacity: 0.8;
+}
+
+.iconSmall {
+  width: 12px;
+  height: 12px;
+}
+
+.iconDefault {
+  width: 16px;
+  height: 16px;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}

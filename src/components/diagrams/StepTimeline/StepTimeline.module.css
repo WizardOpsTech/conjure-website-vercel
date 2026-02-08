@@ -1,0 +1,14 @@
+.timeline {
+  padding-left: 1rem;
+  border-left: 2px solid;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.step {
+  margin-bottom: 0.5rem;
+}
+
+.step:last-child {
+  margin-bottom: 0;
+}

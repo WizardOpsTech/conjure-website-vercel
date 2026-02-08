@@ -1,0 +1,47 @@
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 2px solid;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-family: var(--font-body);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.titleIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  font-family: var(--font-body);
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item {
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+}

@@ -1,0 +1,12 @@
+.panel {
+  border-radius: 1rem;
+  padding: 2rem;
+  border: 1px solid;
+  backdrop-filter: blur(24px);
+}
+
+@media (min-width: 768px) {
+  .panel {
+    padding: 3rem;
+  }
+}
