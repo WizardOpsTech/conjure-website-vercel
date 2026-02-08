@@ -17,7 +17,7 @@ import { Pencil } from "lucide-react";
 import s from "./DocsPage.module.css";
 
 export const DOCS_DIRECTORY = "./docs";
-const GITHUB_REPO_URL = "https://github.com/wizardopstechtech/conjure-website";
+const GITHUB_REPO_URL = "https://github.com/wizardopstech/conjure-website-vercel";
 export const DOCS_PAGES_ROOT_PATH = "/docs";
 
 export async function getStaticPaths() {
