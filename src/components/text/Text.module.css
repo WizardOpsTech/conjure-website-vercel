@@ -77,7 +77,7 @@
     }
   }
   & > code {
-    /* Fix for https://github.com/wizardopstech/conjure-website/issues/312
+    /* Fix for https://github.com/wizardopstech/conjure-website-vercel/issues/312
   * In the case a user has custom fonts disabled, this ensures
   * that the code block is still readable. 
   */
