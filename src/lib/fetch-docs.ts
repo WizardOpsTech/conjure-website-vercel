@@ -76,6 +76,9 @@ async function loadDocsPageFromRelativeFilePath(
   const content: MDXRemoteSerializeResult = await serialize(
     mdxFileContent.content,
     {
+      // All MDX content is first-party (authored in-repo), not user-submitted,
+      // so JS expressions in MDX attributes (e.g. links={[...]}) are safe.
+      blockJS: false,
       mdxOptions: {
         remarkPlugins: [
           remarkGfm,
