@@ -27,6 +27,7 @@ If no `--config` flag is provided, Conjure looks for `.conjure.yaml` in your hom
 | `templates_priority` | No | `local-first` | `local-first`, `remote-first` | Which source to check first when source is `both`. |
 | `bundles_priority` | No | `local-first` | `local-first`, `remote-first` | Which source to check first when source is `both`. |
 | `cache_dir` | No | `.conjure` (relative to working directory) | Directory path | Cache directory for remote resources. Supports `~/` expansion. |
+| `color_theme` | No | *(default theme)* | Theme name or empty string | Color theme for interactive mode prompts. See [Color Themes](/docs/configuration/themes) for available values. |
 
 <Important>
 The `templates_local_dir` and `bundles_local_dir` paths must point to the **parent directory** that contains the `templates/` and `bundles/` subdirectories. Conjure appends `templates/` and `bundles/` to the configured path internally. Use fully qualified absolute paths. Conjure does not expand the `~` shorthand in local directory paths (only `cache_dir` supports tilde expansion).
@@ -47,6 +48,7 @@ Every configuration option has a corresponding environment variable with the `CO
 | `templates_priority` | `CONJURE_TEMPLATES_PRIORITY` |
 | `bundles_priority` | `CONJURE_BUNDLES_PRIORITY` |
 | `cache_dir` | `CONJURE_CACHE_DIR` |
+| `color_theme` | `CONJURE_COLOR_THEME` |
 
 ## Precedence
 

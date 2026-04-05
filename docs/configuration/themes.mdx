@@ -1,0 +1,73 @@
+---
+title: Color Themes
+description: Customize the interactive mode prompt with one of Conjure's built-in color themes.
+---
+
+Conjure's interactive mode renders a styled terminal UI using [Bubble Tea](https://github.com/charmbracelet/bubbletea) and [Lip Gloss](https://github.com/charmbracelet/lipgloss). You can customize the color palette by setting `color_theme` in your configuration file or via an environment variable.
+
+<img src="/gifs/theme-dragon-hoard.gif" alt="conjure interactive mode demo" width="700" />
+<img src="/gifs/theme-enchanted-aurora.gif" alt="conjure interactive mode demo" width="700" />    
+<img src="/gifs/theme-runestone-grove.gif" alt="conjure interactive mode demo" width="700" />    
+
+## Setting a Theme
+
+Add `color_theme` to your `~/.conjure.yaml`:
+
+```yaml
+templates_local_dir: /home/user/conjure-repo
+color_theme: moonlit-mana
+```
+
+Or set it with an environment variable:
+
+```bash
+export CONJURE_COLOR_THEME=moonlit-mana
+```
+
+Omitting `color_theme` (or setting it to an empty string) uses the built-in **default** theme.
+
+<Important>
+Theme names are case-sensitive and must match exactly. An invalid theme name will cause Conjure to exit with a validation error.
+</Important>
+
+## Available Themes
+
+| Theme Name | Palette Description |
+|---|---|
+| *(default)* | Purple, cyan, and green on dark — applied when `color_theme` is unset |
+| `arcane-ember` | Warm ember oranges and amber |
+| `moonlit-mana` | Soft purples and sky blues |
+| `runestone-grove` | Earthy greens and muted teal |
+| `spellforge` | Burnt orange, rose, and bronze |
+| `celestial-grimoire` | Violet, gold, and light blue |
+| `mystic-marsh` | Forest green and teal |
+| `dragon-hoard` | Emerald green, red, and gold |
+| `enchanted-aurora` | Cyan, hot pink, and neon green |
+| `hexfire` | Violet, pink, and deep orange |
+| `potionmaker` | Teal, lime, and amethyst |
+| `feywild-bloom` | Pastel pinks, lavender, and mint |
+| `storm-sorcerer` | Electric blue and steel grey |
+| `necromancers-ledger` | Seafoam, sage green, and light grey |
+| `sunspell-sanctum` | Amber, burnt orange, and warm brown |
+| `crystal-familiar` | Ice blue, soft lavender, and pearl |
+
+## Accessibility
+
+All built-in themes are validated to meet **WCAG 2.1 AA** contrast requirements (4.5:1 minimum) against a dark terminal background (`#121212`). If you use a light terminal background, contrast ratios may differ.
+
+## Next Steps
+
+<CardLinks
+  cards={[
+    {
+      title: "Configuration Reference",
+      description: "See all available configuration options.",
+      href: "/docs/configuration"
+    },
+    {
+      title: "Interactive Mode",
+      description: "Learn how interactive prompts work.",
+      href: "/docs/getting-started/interactive"
+    }
+  ]}
+/>
