@@ -142,6 +142,11 @@
           "type": "link",
           "path": "/",
           "title": "Configuration Reference"
+        },
+        {
+          "type": "link",
+          "path": "/themes",
+          "title": "Color Themes"
         }
       ]
     },
