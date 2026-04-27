@@ -19,6 +19,12 @@ make
 Open [http://localhost:3000](http://localhost:3000) with your browser
 to view the website.
 
+## Tracking new Conjure Releases
+
+When new releases are updated edit the following:
+- `conjure-website-vercel/src/lib/fetch-latest-conjure-version.ts`. This is where downloads takes its versions from.
+- `conjure-website-vercel/docs/install/release-notes`. Add a new mdx file for the version and update index.
+
 ## Contributing
 
 If you would like to contribute to the website, please read the
