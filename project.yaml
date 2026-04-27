@@ -1,0 +1,21 @@
+name: conjure-website
+type: documentation-site
+description: Public documentation site for the Conjure CLI.
+publicBaseUrl: https://conjure.wizardops.dev
+language: en
+locale: en_US
+visibility: public
+indexing: index
+stack:
+  - nextjs
+  - react
+  - typescript
+  - mdx
+standards:
+  - seo
+  - web-trust
+  - structured-data
+  - seo-validation
+  - react
+  - typescript
+  - accessibility
