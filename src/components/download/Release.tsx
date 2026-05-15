@@ -1,8 +1,8 @@
 import { ButtonLink } from "@/components/link";
 import GenericCard from "@/components/generic-card";
 import { CodeXml, Download, BookOpen } from "lucide-react";
-import s from "./DownloadPage.module.css";
-import { DownloadPageProps } from "./index";
+import s from "@/pages/download/DownloadPage.module.css";
+import { DownloadPageProps } from "@/pages/download";
 
 const binaries = [
   {

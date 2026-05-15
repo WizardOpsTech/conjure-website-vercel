@@ -26,6 +26,7 @@ export default function NotFound({ docsNavTree }: NotFoundProps) {
         title: "Page not found | Conjure",
         description:
           "Oops! We couldn't find what you were looking for. Try browsing our docs or visit our download page.",
+        robots: "noindex,nofollow",
       }}
     >
       <main className={s.notFoundPage}>

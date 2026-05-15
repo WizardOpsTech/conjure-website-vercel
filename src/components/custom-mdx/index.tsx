@@ -21,13 +21,14 @@ import { useStore } from "@/lib/use-store";
 
 interface CustomMDXProps {
   content: MDXRemoteSerializeResult;
+  latestVersion?: string;
 }
 
 function isReactElement(children: any): children is ReactElement<any> {
   return children && typeof children === "object" && "props" in children;
 }
 
-export default function CustomMDX({ content }: CustomMDXProps) {
+export default function CustomMDX({ content, latestVersion }: CustomMDXProps) {
   const resetHeaderIdsInView = useStore((state) => state.resetHeaderIdsInView);
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function CustomMDX({ content }: CustomMDXProps) {
     <div className={s.customMDX}>
       <MDXRemote
         {...content}
+        scope={{ latestVersion }}
         components={{
           h1: (props) => JumplinkHeader({ ...props, as: "h1" }),
           h2: (props) => JumplinkHeader({ ...props, as: "h2" }),

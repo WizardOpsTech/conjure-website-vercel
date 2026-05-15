@@ -4,11 +4,12 @@ import { H1, P } from "@/components/text";
 import NavFooterLayout from "@/layouts/nav-footer-layout";
 import { fetchLatestConjureVersion } from "@/lib/fetch-latest-conjure-version";
 import { loadDocsNavTreeData } from "@/lib/fetch-nav";
+import Head from "next/head";
 import Image from "next/image";
 import { DOCS_DIRECTORY } from "../docs/[...path]";
 import s from "./DownloadPage.module.css";
-import ReleaseDownloadPage from "./release";
-import TipDownloadPage from "./tip";
+import ReleaseDownloadPage from "@/components/download/Release";
+import TipDownloadPage from "@/components/download/Tip";
 
 export async function getStaticProps() {
   return {
@@ -30,7 +31,32 @@ export default function DownloadPage({
 }: DownloadPageProps) {
   const isTip = process.env.GIT_COMMIT_REF === "tip";
 
+  const downloadJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "@id": "https://conjure.wizardops.dev/#software",
+    "name": "Conjure",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Linux, macOS, Windows",
+    "url": "https://conjure.wizardops.dev",
+    "downloadUrl": "https://conjure.wizardops.dev/download",
+    "description": "A template-driven configuration generator for DevOps, Platform Engineers, and Developers.",
+    "publisher": { "@id": "https://wizardops.dev/#organization" },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+    },
+  };
+
   return (
+    <>
+    <Head>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(downloadJsonLd) }}
+      />
+    </Head>
     <NavFooterLayout
       docsNavTree={docsNavTree}
       meta={{
@@ -73,5 +99,6 @@ export default function DownloadPage({
         </SectionWrapper>
       </main>
     </NavFooterLayout>
+    </>
   );
 }

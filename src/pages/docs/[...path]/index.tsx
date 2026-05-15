@@ -6,11 +6,13 @@ import ScrollToTopButton from "@/components/scroll-to-top";
 import Sidecar from "@/components/sidecar";
 import { H1, P } from "@/components/text";
 import NavFooterLayout from "@/layouts/nav-footer-layout";
+import Head from "next/head";
 import {
   DocsPageData,
   loadAllDocsPageSlugs,
   loadDocsPage,
 } from "@/lib/fetch-docs";
+import { fetchLatestConjureVersion } from "@/lib/fetch-latest-conjure-version";
 import { loadDocsNavTreeData } from "@/lib/fetch-nav";
 import { navTreeToBreadcrumbs } from "@/lib/nav-tree-to-breadcrumbs";
 import { Pencil } from "lucide-react";
@@ -42,8 +44,15 @@ interface StaticPropsParams {
 
 export async function getStaticProps({ params: { path } }: StaticPropsParams) {
   const activePageSlug = path.join("/");
-  const navTreeData = await loadDocsNavTreeData(DOCS_DIRECTORY, activePageSlug);
-  const docsPageData = await loadDocsPage(DOCS_DIRECTORY, activePageSlug);
+  const [navTreeData, latestVersion] = await Promise.all([
+    loadDocsNavTreeData(DOCS_DIRECTORY, activePageSlug),
+    fetchLatestConjureVersion(),
+  ]);
+  const docsPageData = await loadDocsPage(
+    DOCS_DIRECTORY,
+    activePageSlug,
+    latestVersion,
+  );
   const breadcrumbs = navTreeToBreadcrumbs(
     "Conjure Docs",
     DOCS_PAGES_ROOT_PATH,
@@ -55,6 +64,7 @@ export async function getStaticProps({ params: { path } }: StaticPropsParams) {
       navTreeData,
       docsPageData,
       breadcrumbs,
+      latestVersion,
     },
   };
 }
@@ -63,11 +73,15 @@ interface DocsPageProps {
   navTreeData: NavTreeNode[];
   docsPageData: DocsPageData;
   breadcrumbs: Breadcrumb[];
+  latestVersion: string;
 }
+
+const BASE_URL = "https://conjure.wizardops.dev";
 
 export default function DocsPage({
   navTreeData,
   docsPageData: {
+    slug,
     title,
     description,
     editOnGithubLink,
@@ -77,6 +91,7 @@ export default function DocsPage({
     hideSidecar,
   },
   breadcrumbs,
+  latestVersion,
 }: DocsPageProps) {
   // Calculate the "Edit in Github" link. If it's not provided
   // in the frontmatter, point to the website repo mdx file.
@@ -84,7 +99,46 @@ export default function DocsPage({
     ? editOnGithubLink
     : `${GITHUB_REPO_URL}/edit/master/${relativeFilePath}`;
 
+  const pageUrl = `${BASE_URL}/docs/${slug}`;
+
+  const breadcrumbItems = breadcrumbs
+    .filter((b): b is Breadcrumb & { href: string } => b.href !== null)
+    .map((b, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "name": b.text,
+      "item": b.href.startsWith("http") ? b.href : `${BASE_URL}${b.href}`,
+    }));
+
+  const pageJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "@id": `${pageUrl}#article`,
+      "headline": title,
+      "description": description ?? "",
+      "url": pageUrl,
+      "publisher": { "@id": "https://wizardops.dev/#organization" },
+    },
+    ...(breadcrumbItems.length > 1
+      ? [
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": breadcrumbItems,
+          },
+        ]
+      : []),
+  ];
+
   return (
+    <>
+    <Head>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageJsonLd) }}
+      />
+    </Head>
     <NavFooterLayout
       docsNavTree={navTreeData}
       meta={{
@@ -129,7 +183,7 @@ export default function DocsPage({
               </P>
             </div>
             <OSTabsProvider>
-              <CustomMDX content={content} />
+              <CustomMDX content={content} latestVersion={latestVersion} />
             </OSTabsProvider>
             <br />
             <div className={s.editOnGithub}>
@@ -147,5 +201,6 @@ export default function DocsPage({
         </main>
       </div>
     </NavFooterLayout>
+    </>
   );
 }

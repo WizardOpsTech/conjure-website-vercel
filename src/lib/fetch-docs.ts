@@ -43,6 +43,7 @@ export interface DocsPageData {
 export async function loadDocsPage(
   docsDirectory: string,
   slug: string,
+  latestVersion?: string,
 ): Promise<DocsPageData> {
   // A file with a given slug can be located in one of two places.
   // First we attempt to load the file from the non-index path first.
@@ -50,6 +51,7 @@ export async function loadDocsPage(
   try {
     return await loadDocsPageFromRelativeFilePath(
       nodePath.join(docsDirectory, slug + MDX_EXTENSION),
+      latestVersion,
     );
   } catch (err) {
     // If we run into an error because the file didn't exist catch this error
@@ -62,19 +64,25 @@ export async function loadDocsPage(
   // Now we'll attempt to load the index file path.
   return await loadDocsPageFromRelativeFilePath(
     nodePath.join(docsDirectory, slug, "index" + MDX_EXTENSION),
+    latestVersion,
   );
 }
 
 async function loadDocsPageFromRelativeFilePath(
   relativeFilePath: string,
+  latestVersion?: string,
 ): Promise<DocsPageData> {
   const mdxFileContent = matter.read(relativeFilePath);
   const slug = slugFromRelativeFilePath(relativeFilePath);
 
   var pageHeaders: PageHeader[] = [];
 
+  const rawContent = latestVersion
+    ? mdxFileContent.content.replaceAll("{latestVersion}", latestVersion)
+    : mdxFileContent.content;
+
   const content: MDXRemoteSerializeResult = await serialize(
-    mdxFileContent.content,
+    rawContent,
     {
       // All MDX content is first-party (authored in-repo), not user-submitted,
       // so JS expressions in MDX attributes (e.g. links={[...]}) are safe.
