@@ -1,8 +1,8 @@
 import { ButtonLink } from "@/components/link";
 import GenericCard from "@/components/generic-card";
 import { CodeXml, Github, Globe } from "lucide-react";
-import s from "./DownloadPage.module.css";
-import { DownloadPageProps } from "./index";
+import s from "@/pages/download/DownloadPage.module.css";
+import { DownloadPageProps } from "@/pages/download";
 
 export default function TipDownloadPage({
   latestVersion,

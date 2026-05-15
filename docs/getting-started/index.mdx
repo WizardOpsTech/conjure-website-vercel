@@ -29,17 +29,15 @@ First, download and install Conjure for your operating system.
 
 <OSContent os="windows">
 
-### Download for Windows
+### Install on Windows
 
-1. Download the latest Windows release from the [download page](/download)
-2. Extract the ZIP file to a location like `C:\Program Files\Conjure`
-3. Add Conjure to your PATH:
+Run this one-liner in PowerShell 5.1 or later. It detects your architecture, downloads the right binary, and adds it to your PATH automatically:
 
 ```powershell
-$env:Path += ";C:\Program Files\Conjure"
+irm https://raw.githubusercontent.com/WizardOpsTech/conjure/main/install.ps1 | iex
 ```
 
-4. Verify the installation:
+Verify the installation:
 
 ```powershell
 conjure --version
@@ -53,12 +51,16 @@ You should see output displaying the installed version of Conjure.
 
 ### Install on macOS
 
-Download the binary manually from the [download page](/download) and move it to your PATH:
+Run this one-liner in your terminal. It detects your OS and architecture, downloads the right binary, and installs it to `~/.local/bin`:
 
 ```bash
-wget https://github.com/wizardopstech/conjure/releases/latest/download/conjure_1.0.0_Darwin_arm64.tar.gz
-sudo mv conjure /usr/local/bin/
-sudo chmod +x /usr/local/bin/conjure
+curl -sfL https://raw.githubusercontent.com/WizardOpsTech/conjure/main/install.sh | sh
+```
+
+The script will tell you if `~/.local/bin` needs to be added to your PATH. If so, add the line it prints to your `~/.zshrc` (or `~/.bashrc`), then restart your terminal or run:
+
+```bash
+source ~/.zshrc
 ```
 
 Verify the installation:
@@ -75,12 +77,16 @@ You should see output displaying the installed version of Conjure.
 
 ### Install on Linux
 
-Download the Linux binary from the [download page](/download):
+Run this one-liner in your terminal. It detects your OS and architecture, downloads the right binary, and installs it to `~/.local/bin`:
 
 ```bash
-wget https://github.com/wizardopstech/conjure/releases/latest/download/conjure_1.0.0_Linux_x86_64.tar.gz
-sudo mv conjure-linux-amd64 /usr/local/bin/conjure
-sudo chmod +x /usr/local/bin/conjure
+curl -sfL https://raw.githubusercontent.com/WizardOpsTech/conjure/main/install.sh | sh
+```
+
+The script will tell you if `~/.local/bin` needs to be added to your PATH. If so, add the line it prints to your `~/.bashrc` (or `~/.zshrc`), then restart your terminal or run:
+
+```bash
+source ~/.bashrc
 ```
 
 Verify the installation:

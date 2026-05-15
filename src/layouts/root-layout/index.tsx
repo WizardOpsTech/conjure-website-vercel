@@ -9,6 +9,7 @@ import s from "./RootLayout.module.css";
 export interface PageMeta {
   title: string;
   description: string;
+  robots?: string;
 }
 
 export interface RootLayoutProps {
@@ -18,7 +19,7 @@ export interface RootLayoutProps {
 }
 
 export default function RootLayout({
-  meta: { title, description },
+  meta: { title, description, robots = "index,follow" },
   className,
   children,
 }: RootLayoutProps) {
@@ -53,7 +54,7 @@ export default function RootLayout({
           <meta property="og:image:alt" content="Conjure — template-driven configuration generation for DevOps and developers" />
           <meta property="og:locale" content="en_US" />
 
-          <meta name="robots" content="index,follow" />
+          <meta name="robots" content={robots} />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:site" content="@wizardopsdev" />
           <meta name="twitter:title" content={title} />
@@ -65,7 +66,7 @@ export default function RootLayout({
           <link rel="dns-prefetch" href="https://github.com" />
           <link rel="dns-prefetch" href="https://discord.gg" />
 
-          <script
+          {isHomepage && <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
               __html: JSON.stringify({
@@ -113,7 +114,7 @@ export default function RootLayout({
                 ],
               }),
             }}
-          />
+          />}
 
           <meta name="darkreader-lock" />
         </Head>

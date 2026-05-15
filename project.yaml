@@ -19,3 +19,4 @@ standards:
   - react
   - typescript
   - accessibility
+  - conjure-release-contract
